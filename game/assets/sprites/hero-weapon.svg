@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 260">
+  <defs>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f4fbff"/>
+      <stop offset=".45" stop-color="#93bed2"/>
+      <stop offset="1" stop-color="#496b86"/>
+    </linearGradient>
+    <linearGradient id="leather" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#8f5a35"/>
+      <stop offset="1" stop-color="#3b2419"/>
+    </linearGradient>
+  </defs>
+  <path d="M286 34 102 219l-39 8 8-39L255 4c25 0 30 7 31 30Z" fill="url(#blade)" stroke="#d7f3ff" stroke-width="7" stroke-linejoin="round"/>
+  <path d="m127 186 34 34-25 25-34-34Z" fill="#29343e" stroke="#d9b56f" stroke-width="7"/>
+  <path d="m73 212 23-23 64 64-23 23Z" fill="url(#leather)" stroke="#201916" stroke-width="8"/>
+  <path d="m295 46 66 31-101 42Z" fill="#d94e45" opacity=".85"/>
+  <circle cx="91" cy="231" r="18" fill="#d9b56f"/>
+</svg>

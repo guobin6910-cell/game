@@ -1,0 +1,13 @@
+{
+  "name": "frontier-quest",
+  "version": "1.0.0",
+  "private": true,
+  "description": "完整靜態 HTML5 + Phaser 3 第一人稱自動探索角色扮演遊戲，可直接部署到 GitHub Pages。",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check src/main.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

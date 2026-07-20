@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120">
+  <symbol id="sword" viewBox="0 0 120 120">
+    <path d="M88 12 35 66l19 19 54-53c1-15-5-21-20-20Z" fill="#dceaf0" stroke="#2c4552" stroke-width="6"/>
+    <path d="m30 66 24 24-15 15-24-24Z" fill="#9b5a36" stroke="#2c1b15" stroke-width="6"/>
+  </symbol>
+  <symbol id="armor" viewBox="0 0 120 120">
+    <path d="M31 18h58l19 21-10 63H22L12 39Z" fill="#6a8191" stroke="#22313b" stroke-width="6"/>
+    <path d="M42 22c4 13 32 13 36 0" fill="none" stroke="#d8ecf3" stroke-width="8"/>
+  </symbol>
+  <symbol id="ring" viewBox="0 0 120 120">
+    <circle cx="60" cy="67" r="34" fill="none" stroke="#d9b44a" stroke-width="14"/>
+    <path d="m43 28 17-16 17 16-17 18Z" fill="#77e2f2" stroke="#2b7280" stroke-width="5"/>
+  </symbol>
+  <symbol id="potion" viewBox="0 0 120 120">
+    <path d="M45 14h30v24l22 35c10 17-1 38-21 38H44c-20 0-31-21-21-38l22-35Z" fill="#eb5463" stroke="#51242b" stroke-width="6"/>
+    <path d="M42 69c12 7 25 7 38 0" stroke="#ffd2d7" stroke-width="6"/>
+    <path d="M42 14h36" stroke="#f2e4b8" stroke-width="9" stroke-linecap="round"/>
+  </symbol>
+  <use href="#sword" x="0" y="0" width="120" height="120"/>
+  <use href="#armor" x="120" y="0" width="120" height="120"/>
+  <use href="#ring" x="240" y="0" width="120" height="120"/>
+  <use href="#potion" x="360" y="0" width="120" height="120"/>
+</svg>

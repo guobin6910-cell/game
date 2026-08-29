@@ -4,8 +4,59 @@ import { startBattle, applyBattleAction } from './combat.js';
 
 export { getScene, subst, SKILLS };
 
+const LAYER = ['初', '二', '三', '四', '五', '六', '七', '八', '九'];
+const EXP_AT = [0, 24, 56, 100, 156, 224, 306, 402, 512];
+
+export function realmName(level) {
+  const i = Math.max(1, Math.min(9, level || 1)) - 1;
+  return '外門煉體·' + LAYER[i] + '層';
+}
+
+export function levelFromExp(exp) {
+  const e = exp || 0;
+  let lv = 1;
+  for (let i = 1; i < EXP_AT.length; i += 1) {
+    if (e >= EXP_AT[i]) lv = i + 1;
+  }
+  const cur = EXP_AT[lv - 1];
+  const nextAt = lv >= 9 ? null : EXP_AT[lv];
+  return {
+    level: lv,
+    into: e - cur,
+    next: nextAt == null ? 0 : nextAt - cur,
+    nextAt,
+  };
+}
+
+export function expProgress(stats) {
+  const p = levelFromExp(stats?.exp || 0);
+  p.level = stats?.level || p.level;
+  p.realm = realmName(p.level);
+  return p;
+}
+
+function applyGainExp(stats, gain) {
+  const prev = stats.exp || 0;
+  const nextExp = prev + gain;
+  const before = (stats.level || levelFromExp(prev).level);
+  const after = levelFromExp(nextExp).level;
+  const s = { ...stats, exp: nextExp, level: after };
+  const ups = [];
+  for (let lv = before + 1; lv <= after; lv += 1) {
+    s.maxHp += 5;
+    s.maxMp += 3;
+    s.atk += 1;
+    if (lv % 2 === 1) s.def += 1;
+    s.hp = s.maxHp;
+    s.mp = s.maxMp;
+    s.level = lv;
+    ups.push(realmName(lv));
+  }
+  return { stats: s, levelUp: ups };
+}
+
 export function freshStats() {
-  return { hp: 40, maxHp: 40, mp: 18, maxMp: 18, atk: 8, def: 4, exp: 0, silver: 12 };
+  return { hp: 40, maxHp: 40, mp: 18, maxMp: 18, atk: 8, def: 4, exp: 0, silver: 12, level: 1 };
 }
 
 export function newGame(gender, name) {
@@ -76,7 +127,11 @@ export function restoreState(data) {
     paraIndex: data.paraIndex || 0,
     log: Array.isArray(data.log) ? data.log : [],
     flags,
-    stats: { ...freshStats(), ...data.stats },
+    stats: (() => {
+      const stats = { ...freshStats(), ...data.stats };
+      if (!stats.level) stats.level = levelFromExp(stats.exp || 0).level;
+      return stats;
+    })(),
     learned: data.learned || START_SKILLS.slice(),
     loadout: data.loadout || START_SKILLS.slice(),
     pills: data.pills ?? 1,
@@ -207,12 +262,12 @@ export function pickChoice(state, index) {
 function toHub(state, extra = {}) {
   return {
     ...state,
-    ...extra,
     mode: 'hub',
     awaiting: 'hub',
     battle: null,
     settle: null,
     notice: '',
+    ...extra,
   };
 }
 
@@ -228,33 +283,54 @@ export function openSkills(state) {
   return { ...state, mode: 'skills', notice: '', awaiting: 'skills' };
 }
 
+export function openCultivate(state) {
+  if (state.cultivatedToday) {
+    return { ...state, notice: '今日已修煉過。內息散了再煉，會走岔。' };
+  }
+  return { ...state, mode: 'cultivate', notice: '', awaiting: 'cultivate' };
+}
+
 export function confirmPrep(state, loadout, packedPill) {
   const ids = (loadout || []).filter((id) => state.learned.includes(id)).slice(0, 3);
   if (!ids.length) {
     return { ...state, notice: '至少裝備一門功法。盤庫不是掃地，空手要記過。' };
   }
   const pack = Boolean(packedPill) && state.pills > 0;
-  return toHub({ ...state, loadout: ids, packedPill: pack, notice: pack ? '已備功法與止血散。' : '已備功法。' });
+  return toHub({ ...state, loadout: ids, packedPill: pack }, { notice: pack ? '已備功法與止血散。' : '已備功法。' });
 }
 
-export function cultivate(state) {
-  if (state.mode !== 'hub') return state;
+export function cultivate(state, kind) {
+  if (state.mode !== 'cultivate' && state.mode !== 'hub') return state;
   if (state.cultivatedToday) {
-    return { ...state, notice: '今日已修煉過。內息散了再煉，會走岔。' };
+    return toHub(state, { notice: '今日已修煉過。內息散了再煉，會走岔。' });
   }
-  const stats = {
-    ...state.stats,
-    hp: state.stats.maxHp,
-    mp: state.stats.maxMp,
-    exp: state.stats.exp + 6,
-  };
+  let stats = { ...state.stats };
+  let notice = '';
+  if (kind === 'body') {
+    stats.maxHp += 1;
+    stats.hp = Math.min(stats.maxHp, stats.hp + 8);
+    notice = '你站青衡樁。肩沉下去，氣血多一寸。煉體。';
+  } else if (kind === 'breath') {
+    stats.maxMp += 1;
+    stats.mp = stats.maxMp;
+    notice = '你調息。外門土牆那邊有人換氣。息收回來，內力多一寸。';
+  } else if (kind === 'form') {
+    stats.atk += 1;
+    notice = '空地上對自己的影子比劃。拆招。勢比昨天短，也比昨天準。';
+  } else {
+    return state;
+  }
+  const gained = applyGainExp(stats, 10);
+  stats = gained.stats;
   let learned = state.learned.slice();
-  let notice = '氣血內力已復。外門煉體，一日一煉。';
   if (!learned.includes('listen')) {
     learned.push('listen');
-    notice = '你把耳朵貼在外門土牆上。牆那邊有人換氣。息長的，是巡夜；息短的，是怕。這不是功法冊上的東西，是雜役活下來的耳朵。領悟：聽壁息。';
+    notice += ' 牆那邊息長的是巡夜，息短的是怕。領悟：聽壁息。';
   }
-  return { ...state, stats, learned, cultivatedToday: 1, notice };
+  if (gained.levelUp.length) {
+    notice += ' 境界進一層：' + gained.levelUp.join('、') + '。氣血內力皆長。';
+  }
+  return toHub({ ...state, stats, learned, cultivatedToday: 1 }, { notice });
 }
 
 export function buyPill(state) {
@@ -345,11 +421,12 @@ function finishBattle(state, result) {
   for (const line of battle.log) {
     log.push({ kind: 'battle', text: line });
   }
+  const gain = result === 'win' ? 12 : 4;
+  const gained = applyGainExp(stats, gain);
+  Object.assign(stats, gained.stats);
   if (result === 'win') {
-    stats.exp += 12;
     flags.fame = (flags.fame || 0) + 0;
   } else {
-    stats.exp += 4;
     stats.hp = 1;
     flags.demerit = (flags.demerit || 0) + 1;
   }
@@ -358,7 +435,8 @@ function finishBattle(state, result) {
     enemy: battle.name,
     onWin: battle.onWin,
     onLose: battle.onLose,
-    exp: result === 'win' ? 12 : 4,
+    exp: gain,
+    levelUp: gained.levelUp,
   };
   return {
     ...state,

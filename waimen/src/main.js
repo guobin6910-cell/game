@@ -9,6 +9,7 @@ import {
   openPrep,
   openSkills,
   confirmPrep,
+  openCultivate,
   cultivate,
   buyPill,
   startMission,
@@ -17,10 +18,13 @@ import {
   getScene,
   subst,
   missionLabel,
+  realmName,
+  expProgress,
 } from './game.js';
 import { SKILLS, PILL, TYPE_LABEL } from './skills.js';
 import { describeIntent } from './combat.js';
 import { writeAuto, readAuto, hasContinue } from './save.js';
+import { PORTRAITS, BACKGROUNDS, artFor, metFaces } from './art.js';
 
 const app = document.getElementById('app');
 
@@ -76,6 +80,34 @@ function escapeHtml(s) {
 function bar(cur, max, cls) {
   const pct = max > 0 ? Math.max(0, Math.min(100, Math.round((cur / max) * 100))) : 0;
   return `<div class="bar ${cls}"><i style="width:${pct}%"></i></div>`;
+}
+
+function still(bgKey, loc) {
+  const src = BACKGROUNDS[bgKey];
+  if (!src) return `<div class="loc">${escapeHtml(loc || '')}</div>`;
+  return `<div class="still"><img src="${src}" alt=""><div class="still-loc">${escapeHtml(loc || '')}</div></div>`;
+}
+
+function plate(key, name) {
+  const src = PORTRAITS[key];
+  if (!src) return '';
+  return `<div class="plate"><img src="${src}" alt="${escapeHtml(name)}"><div class="plate-name">${escapeHtml(name)}</div></div>`;
+}
+
+function faceRow(flags) {
+  const faces = metFaces(flags);
+  if (!faces.length) return '';
+  const bits = faces.map(([id, name]) => {
+    const src = PORTRAITS[id];
+    if (!src) return '';
+    return `<div class="face"><img src="${src}" alt="${escapeHtml(name)}"><span>${escapeHtml(name)}</span></div>`;
+  }).join('');
+  return `<div class="faces">${bits}</div>`;
+}
+
+function sceneArt(mode, sceneId) {
+  const scene = sceneId ? getScene(sceneId, state) : null;
+  return artFor(mode, sceneId, scene);
 }
 
 function renderTitle() {
@@ -167,7 +199,7 @@ function paintTop() {
   document.getElementById('top').innerHTML = `
     <div class="who">
       <div class="who-name">${escapeHtml(state.name)}</div>
-      <div class="who-realm">外門煉體</div>
+      <div class="who-realm">${escapeHtml(realmName(state.stats.level || 1))}</div>
     </div>
     <button type="button" class="menu-btn" id="btnMenu">選單</button>
     <div class="meters">
@@ -188,8 +220,29 @@ function paintTop() {
 
 function paintMid() {
   const mid = document.getElementById('mid');
-  if (state.mode === 'hub') {
+  if (state.mode === 'hub' || state.mode === 'cultivate') {
     mid.innerHTML = renderHub();
+    return;
+  }
+  if (state.mode === 'cultivate') {
+    bot.innerHTML = `
+      <button type="button" data-c="body">煉體（氣血）</button>
+      <button type="button" data-c="breath">調息（內力）</button>
+      <button type="button" data-c="form">拆招（勢）</button>
+      <button type="button" data-act="back">返回</button>
+    `;
+    bot.querySelectorAll('[data-c]').forEach((b) => {
+      b.onclick = () => {
+        state = cultivate(state, b.dataset.c);
+        persist();
+        paint();
+      };
+    });
+    bot.querySelector('[data-act="back"]').onclick = () => {
+      state = goHub(state);
+      persist();
+      paint();
+    };
     return;
   }
   if (state.mode === 'prep') {
@@ -215,13 +268,14 @@ function paintMid() {
 function renderLog() {
   const scene = getScene(state.sceneId, state);
   const loc = scene ? subst(scene.loc || '', state) : '';
+  const art = artFor('story', state.sceneId, scene);
   const entries = (state.log || [])
     .map((e) => {
       const cls = e.kind || 'p';
       return `<p class="log-${cls}">${escapeHtml(e.text)}</p>`;
     })
     .join('');
-  return `<div class="loc">${escapeHtml(loc)}</div><div class="log">${entries}</div>`;
+  return `${still(art.bg, loc)}${art.portrait ? plate(art.portrait, art.portraitName) : ''}<div class="log">${entries}</div>`;
 }
 
 function renderHub() {
@@ -247,18 +301,34 @@ function renderHub() {
   else if (f.page_burn) notes.push('那頁成了灰。');
   if (f.act1_done) notes.push('第一幕止於門檻。門仍虛掩。');
   const learned = state.learned.map((id) => SKILLS[id]?.name).filter(Boolean).join('、');
+  const prog = expProgress(state.stats);
+  const expLine = prog.nextAt == null
+    ? `經驗 ${state.stats.exp}　九層已滿`
+    : `經驗 ${prog.into}/${prog.next}`;
+  const cultHint = state.mode === 'cultivate'
+    ? '<p class="muted">煉體長氣血，調息長內力，拆招長勢。一日一煉。</p>'
+    : '';
   return `
-    <div class="loc">青衡宗 · 外門</div>
+    ${still('bunk', '青衡宗 · 外門')}
+    ${faceRow(state.flags)}
     <div class="hub-prose">
+      <div class="sheet-row">
+        <span>${escapeHtml(prog.realm)}</span>
+        <span>${escapeHtml(expLine)}</span>
+        <span>攻 ${state.stats.atk}　防 ${state.stats.def}</span>
+        <span>已習 ${state.learned.length} 門</span>
+      </div>
       <p>雜役院。通鋪潮，土階乾。功法冊在枕下，丹藥在袖。門規把日子一寸寸削下去，削得合法。</p>
       <p class="journal">${notes.map(escapeHtml).join('<br>')}</p>
       <p class="muted">已習：${escapeHtml(learned || '無')}</p>
+      ${cultHint}
       ${state.notice ? `<p class="notice">${escapeHtml(state.notice)}</p>` : ''}
     </div>
   `;
 }
 
 function renderPrep() {
+  const art = artFor('prep', '', { loc: '準備' });
   const cards = state.learned
     .map((id) => {
       const sk = SKILLS[id];
@@ -274,7 +344,7 @@ function renderPrep() {
   const canPill = state.pills > 0;
   const pillOn = prepPill && canPill ? ' on' : '';
   return `
-    <div class="loc">準備</div>
+    ${still(art.bg, '準備')}
     <p class="muted">出任務前選至多三門功法，可備一包止血散。點名未起，空手出列，先記過。</p>
     <div class="cards">${cards}</div>
     <button type="button" class="card${pillOn}" data-pill="1" ${canPill ? '' : 'disabled'}>
@@ -316,16 +386,19 @@ function renderSkillBook() {
       </div>`;
     })
     .join('');
-  return `<div class="loc">功法冊</div><div class="cards">${cards || '<p class="muted">冊是空的。</p>'}</div>`;
+  return `${still('bunk', '功法冊')}<div class="cards">${cards || '<p class="muted">冊是空的。</p>'}</div>`;
 }
 
 function renderBattle() {
   const b = state.battle;
   const s = state.stats;
+  const scene = getScene(state.sceneId, state);
+  const art = artFor('battle', state.sceneId, scene);
   const intent = b.sensing > 0 ? `<p class="intent">${escapeHtml(describeIntent(b))}</p>` : '';
   const blog = b.log.map((t) => `<p class="log-battle">${escapeHtml(t)}</p>`).join('');
   return `
-    <div class="loc">衝突</div>
+    ${still(art.bg, '衝突')}
+    ${art.portrait ? plate(art.portrait, art.portraitName) : ''}
     <div class="fight">
       <div class="side">
         <div class="side-name">${escapeHtml(b.name)}</div>
@@ -346,12 +419,16 @@ function renderBattle() {
 function renderSettle() {
   const se = state.settle;
   const win = se.result === 'win';
+  const up = (se.levelUp && se.levelUp.length)
+    ? `<p class="notice">境界進一層：${escapeHtml(se.levelUp.join('、'))}。氣血內力皆長。</p>`
+    : '';
   return `
-    <div class="loc">結算</div>
+    ${still('cover', '結算')}
     <div class="settle">
       <h2>${win ? '這一場算你' : '這一場不算死'}</h2>
       <p>${escapeHtml(se.enemy)}　${win ? '退了' : '你跪過'}</p>
       <p>經驗 +${se.exp}</p>
+      ${up}
       ${win ? '' : '<p>記過 +1。氣血只剩一絲。</p>'}
       <p class="muted">勝敗都要繼續當差。門規不給外門「結束」。 </p>
     </div>
@@ -377,7 +454,7 @@ function paintBot() {
       paint();
     };
     bot.querySelector('[data-h="cult"]').onclick = () => {
-      state = cultivate(state);
+      state = openCultivate(state);
       persist();
       paint();
     };
@@ -393,6 +470,27 @@ function paintBot() {
     };
     bot.querySelector('[data-h="pill"]').onclick = () => {
       state = buyPill(state);
+      persist();
+      paint();
+    };
+    return;
+  }
+  if (state.mode === 'cultivate') {
+    bot.innerHTML = `
+      <button type="button" data-c="body">煉體（氣血）</button>
+      <button type="button" data-c="breath">調息（內力）</button>
+      <button type="button" data-c="form">拆招（勢）</button>
+      <button type="button" data-act="back">返回</button>
+    `;
+    bot.querySelectorAll('[data-c]').forEach((b) => {
+      b.onclick = () => {
+        state = cultivate(state, b.dataset.c);
+        persist();
+        paint();
+      };
+    });
+    bot.querySelector('[data-act="back"]').onclick = () => {
+      state = goHub(state);
       persist();
       paint();
     };

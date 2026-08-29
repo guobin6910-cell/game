@@ -82,16 +82,14 @@ function bar(cur, max, cls) {
   return `<div class="bar ${cls}"><i style="width:${pct}%"></i></div>`;
 }
 
-function still(bgKey, loc) {
+function still(bgKey, loc, portraitKey, portraitName) {
   const src = BACKGROUNDS[bgKey];
-  if (!src) return `<div class="loc">${escapeHtml(loc || '')}</div>`;
-  return `<div class="still"><img src="${src}" alt=""><div class="still-loc">${escapeHtml(loc || '')}</div></div>`;
-}
-
-function plate(key, name) {
-  const src = PORTRAITS[key];
-  if (!src) return '';
-  return `<div class="plate"><img src="${src}" alt="${escapeHtml(name)}"><div class="plate-name">${escapeHtml(name)}</div></div>`;
+  const who = portraitKey && PORTRAITS[portraitKey]
+    ? `<img class="stage-who" src="${PORTRAITS[portraitKey]}" alt="${escapeHtml(portraitName || '')}">`
+    : '';
+  const label = [loc, portraitName].filter(Boolean).join(' · ');
+  if (!src) return `<div class="stage"><div class="loc">${escapeHtml(label)}</div></div>`;
+  return `<div class="stage"><div class="still"><img src="${src}" alt="">${who}<div class="still-loc">${escapeHtml(label)}</div></div></div>`;
 }
 
 function faceRow(flags) {
@@ -185,8 +183,8 @@ function paint() {
   paintTop();
   paintMid();
   paintBot();
-  const mid = document.getElementById('mid');
-  mid.scrollTop = mid.scrollHeight;
+  const pane = document.querySelector('.pane');
+  if (pane) pane.scrollTop = pane.scrollHeight;
 }
 
 function paintTop() {
@@ -224,27 +222,6 @@ function paintMid() {
     mid.innerHTML = renderHub();
     return;
   }
-  if (state.mode === 'cultivate') {
-    bot.innerHTML = `
-      <button type="button" data-c="body">煉體（氣血）</button>
-      <button type="button" data-c="breath">調息（內力）</button>
-      <button type="button" data-c="form">拆招（勢）</button>
-      <button type="button" data-act="back">返回</button>
-    `;
-    bot.querySelectorAll('[data-c]').forEach((b) => {
-      b.onclick = () => {
-        state = cultivate(state, b.dataset.c);
-        persist();
-        paint();
-      };
-    });
-    bot.querySelector('[data-act="back"]').onclick = () => {
-      state = goHub(state);
-      persist();
-      paint();
-    };
-    return;
-  }
   if (state.mode === 'prep') {
     mid.innerHTML = renderPrep();
     bindPrep();
@@ -275,7 +252,7 @@ function renderLog() {
       return `<p class="log-${cls}">${escapeHtml(e.text)}</p>`;
     })
     .join('');
-  return `${still(art.bg, loc)}${art.portrait ? plate(art.portrait, art.portraitName) : ''}<div class="log">${entries}</div>`;
+  return `${still(art.bg, loc, art.portrait, art.portraitName)}<div class="pane log">${entries}</div>`;
 }
 
 function renderHub() {
@@ -310,8 +287,8 @@ function renderHub() {
     : '';
   return `
     ${still('bunk', '青衡宗 · 外門')}
+    <div class="pane hub-prose">
     ${faceRow(state.flags)}
-    <div class="hub-prose">
       <div class="sheet-row">
         <span>${escapeHtml(prog.realm)}</span>
         <span>${escapeHtml(expLine)}</span>
@@ -345,6 +322,7 @@ function renderPrep() {
   const pillOn = prepPill && canPill ? ' on' : '';
   return `
     ${still(art.bg, '準備')}
+    <div class="pane">
     <p class="muted">出任務前選至多三門功法，可備一包止血散。點名未起，空手出列，先記過。</p>
     <div class="cards">${cards}</div>
     <button type="button" class="card${pillOn}" data-pill="1" ${canPill ? '' : 'disabled'}>
@@ -353,6 +331,7 @@ function renderPrep() {
       <p>${escapeHtml(PILL.desc)}</p>
     </button>
     ${state.notice ? `<p class="notice">${escapeHtml(state.notice)}</p>` : ''}
+    </div>
   `;
 }
 
@@ -386,7 +365,7 @@ function renderSkillBook() {
       </div>`;
     })
     .join('');
-  return `${still('bunk', '功法冊')}<div class="cards">${cards || '<p class="muted">冊是空的。</p>'}</div>`;
+  return `${still('bunk', '功法冊')}<div class="pane"><div class="cards">${cards || '<p class="muted">冊是空的。</p>'}</div></div>`;
 }
 
 function renderBattle() {
@@ -397,22 +376,22 @@ function renderBattle() {
   const intent = b.sensing > 0 ? `<p class="intent">${escapeHtml(describeIntent(b))}</p>` : '';
   const blog = b.log.map((t) => `<p class="log-battle">${escapeHtml(t)}</p>`).join('');
   return `
-    ${still(art.bg, '衝突')}
-    ${art.portrait ? plate(art.portrait, art.portraitName) : ''}
-    <div class="fight">
-      <div class="side">
-        <div class="side-name">${escapeHtml(b.name)}</div>
-        ${bar(b.enemyHp, b.enemyMaxHp, 'hp')}
-        <b>${b.enemyHp}/${b.enemyMaxHp}</b>
-      </div>
-      <div class="side">
-        <div class="side-name">${escapeHtml(state.name)}</div>
-        ${bar(s.hp, s.maxHp, 'hp')}
-        <b>${s.hp}/${s.maxHp}</b>
+    ${still(art.bg, '衝突', art.portrait, art.portraitName)}
+    <div class="fight-strip">
+      <div class="fight">
+        <div class="side">
+          <div class="side-name">${escapeHtml(b.name)}</div>
+          ${bar(b.enemyHp, b.enemyMaxHp, 'hp')}
+          <b>${b.enemyHp}/${b.enemyMaxHp}</b>
+        </div>
+        <div class="side">
+          <div class="side-name">${escapeHtml(state.name)}</div>
+          ${bar(s.hp, s.maxHp, 'hp')}
+          <b>${s.hp}/${s.maxHp}</b>
+        </div>
       </div>
     </div>
-    ${intent}
-    <div class="log battle-log">${blog}</div>
+    <div class="pane log battle-log">${intent}${blog}</div>
   `;
 }
 
@@ -424,7 +403,7 @@ function renderSettle() {
     : '';
   return `
     ${still('cover', '結算')}
-    <div class="settle">
+    <div class="pane settle">
       <h2>${win ? '這一場算你' : '這一場不算死'}</h2>
       <p>${escapeHtml(se.enemy)}　${win ? '退了' : '你跪過'}</p>
       <p>經驗 +${se.exp}</p>

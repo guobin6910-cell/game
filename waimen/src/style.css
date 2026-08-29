@@ -121,10 +121,38 @@ button {
 
 .mid {
   flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  z-index: 1;
+}
+.shell[data-screen="title"] .mid {
+  overflow: auto;
+  display: block;
+}
+.stage {
+  flex: 0 0 36vh;
+  max-height: 280px;
+  min-height: 148px;
+  position: relative;
+  background: #07090a;
+}
+.pane {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 14px 16px 12px;
-  z-index: 1;
+  padding: 12px 16px;
+  background: rgba(7, 10, 12, 0.82);
+  border-top: 1px solid var(--gold-line);
+}
+.fight-strip {
+  flex: 0 0 auto;
+  padding: 8px 12px 6px;
+  border-top: 1px solid var(--gold-line);
+  background: rgba(6, 12, 14, 0.88);
 }
 .loc {
   font-size: 12px;
@@ -134,12 +162,23 @@ button {
 }
 .still {
   position: relative;
-  margin: -14px -16px 12px;
-  height: 32vh;
-  max-height: 220px;
-  min-height: 120px;
+  margin: 0;
+  height: 100%;
   overflow: hidden;
   background: #07090a;
+}
+.stage-who {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 96%;
+  width: auto;
+  max-width: 52%;
+  object-fit: cover;
+  object-position: center 12%;
+  z-index: 1;
+  -webkit-mask-image: linear-gradient(90deg, #000 58%, transparent);
+  mask-image: linear-gradient(90deg, #000 58%, transparent);
 }
 .still img {
   width: 100%;
@@ -158,12 +197,14 @@ button {
 }
 .still-loc {
   position: absolute;
-  left: 16px;
+  right: 14px;
+  left: 42%;
   bottom: 10px;
-  z-index: 1;
-  letter-spacing: 0.32em;
+  z-index: 2;
+  letter-spacing: 0.28em;
   font-size: 12px;
   color: var(--gold);
+  text-align: right;
 }
 .plate {
   display: flex;

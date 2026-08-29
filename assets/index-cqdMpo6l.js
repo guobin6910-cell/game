@@ -9,7 +9,7 @@
     <div class="title-wrap">
       <div class="seal">青衡</div>
       <h1 class="game-title">外門</h1>
-      <p class="game-sub">文字RPG　第一幕</p>
+      <p class="game-sub">文字RPG　第一幕 · 盤庫至虛掩</p>
       <p class="game-tag">外門雜役 · 煉體 · 門規合法</p>
       <div class="menu">
         <button type="button" data-act="new">新的故事</button>

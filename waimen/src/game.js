@@ -36,6 +36,22 @@ export function newGame(gender, name) {
 
 export function restoreState(data) {
   if (!data || !data.stats) return null;
+  const flags = data.flags || {};
+  let mission = data.mission || 'panku';
+  let day = data.day || 1;
+  if (mission === 'done') {
+    const swept = flags.sweep_done || flags.won_wang || flags.lost_wang || flags.yield_wang;
+    if (flags.sidemen_done) {
+      mission = 'errand';
+    } else if (swept) {
+      mission = 'sidemen';
+      if (day < 3) day = 3;
+    } else if (day >= 2 || flags.day1_done) {
+      mission = 'sweep';
+    } else {
+      mission = 'panku';
+    }
+  }
   return {
     version: 2,
     gender: data.gender === 'female' ? 'female' : 'male',
@@ -44,14 +60,14 @@ export function restoreState(data) {
     sceneId: data.sceneId || 'intro',
     paraIndex: data.paraIndex || 0,
     log: Array.isArray(data.log) ? data.log : [],
-    flags: data.flags || {},
+    flags,
     stats: { ...freshStats(), ...data.stats },
     learned: data.learned || START_SKILLS.slice(),
     loadout: data.loadout || START_SKILLS.slice(),
     pills: data.pills ?? 1,
     packedPill: Boolean(data.packedPill),
-    day: data.day || 1,
-    mission: data.mission || 'panku',
+    day,
+    mission,
     battle: data.battle || null,
     settle: data.settle || null,
     cultivatedToday: data.cultivatedToday || 0,
@@ -151,7 +167,9 @@ export function pickChoice(state, index) {
   const to = choice.to;
   if (to === '__hub__') return toHub(next, { day: next.day || 1, mission: next.mission || 'panku' });
   if (to === '__hub_day2__') return toHub(next, { day: 2, mission: 'sweep', cultivatedToday: 0 });
-  if (to === '__hub_done__') return toHub(next, { day: next.day, mission: 'done' });
+  if (to === '__hub_sidemen__') return toHub(next, { day: Math.max(3, (next.day || 1) + 1), mission: 'sidemen', cultivatedToday: 0 });
+  if (to === '__hub_errand__') return toHub(next, { day: (next.day || 1) + 1, mission: 'errand', cultivatedToday: 0 });
+  if (to === '__hub_done__') return toHub(next, { day: (next.day || 1) + 1, mission: nextOpenMission(next), cultivatedToday: 0 });
   return enterScene(next, to);
 }
 
@@ -219,13 +237,27 @@ export function buyPill(state) {
   };
 }
 
+function nextOpenMission(state) {
+  const f = state.flags || {};
+  if (state.mission === 'panku' || !f.day1_done) return 'sweep';
+  if (state.mission === 'sweep' || !f.sweep_done) return 'sidemen';
+  return 'errand';
+}
+
 export function startMission(state) {
+  let mission = state.mission;
+  if (mission === 'done' || !mission) {
+    mission = nextOpenMission(state);
+    state = { ...state, mission };
+  }
   if (!state.loadout.length) {
     return { ...state, notice: '先裝備功法。點名未起，空手出列，先記過。' };
   }
-  if (state.mission === 'panku') return enterScene(state, 'panku');
-  if (state.mission === 'sweep') return enterScene(state, 'sweep');
-  return { ...state, notice: '差事冊今日無新條。可修煉，可翻功法冊。' };
+  if (mission === 'panku') return enterScene(state, 'panku');
+  if (mission === 'sweep') return enterScene(state, 'sweep');
+  if (mission === 'sidemen') return enterScene(state, 'sidemen');
+  if (mission === 'errand') return enterScene(state, 'errand');
+  return enterScene({ ...state, mission: 'errand' }, 'errand');
 }
 
 export function beginBattle(state) {
@@ -299,5 +331,7 @@ export function continueSettle(state) {
 export function missionLabel(state) {
   if (state.mission === 'panku') return '盤庫';
   if (state.mission === 'sweep') return '掃外庭';
-  return '無';
+  if (state.mission === 'sidemen') return '掃側門銀杏';
+  if (state.mission === 'errand') return '外門雜差';
+  return '外門雜差';
 }

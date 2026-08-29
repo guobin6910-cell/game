@@ -517,6 +517,7 @@ SCENES.day_end = (state) => {
       lean,
       '第一章的差事到此為止。沒有偽的第二章。外門還在。功法還在腰上。天亮之後，仍要掃，仍可煉，仍要準備下一回差事。',
     ],
+    setFlags: { day1_done: 1 },
     choices: [
       { text: '回外門', to: '__hub_day2__' },
     ],
@@ -541,10 +542,11 @@ SCENES.sweep_yield = () => ({
   paras: [
     '你讓了。王五哼了一聲，像贏了月例。落葉在他腳邊堆成小丘，風一吹，又回到你這側。',
     '外門的地，讓來讓去還是這些葉。你把邊兒掃完。值事的人遠遠看了一眼，沒記。沒記功，也沒記過。',
-    '差事冊今日無新條。可修煉，可翻功法冊。明日寅時仍要掃。',
+    '外庭掃完。值事遠遠看了一眼，沒記功，也沒記過。冊上另有一條：側門那兩棵銀杏，葉子多。',
   ],
+  setFlags: { sweep_done: 1 },
   choices: [
-    { text: '回外門', to: '__hub_done__' },
+    { text: '回外門', to: '__hub_sidemen__' },
   ],
 });
 
@@ -561,11 +563,11 @@ SCENES.wang_win = () => ({
   paras: [
     '王五坐下。不是跪。外門不跪給同門——跪是求情，求情另記一筆「無骨」。他只是坐下，揉腕。',
     '「掃就掃。」他說。葉還是那些葉。你把中間也掃了。有人用氣音說：「昨天挨趙的，今天不挨王。」名聲這種東西，不入冊，入嘴。',
-    '差事冊今日無新條。可修煉，可翻功法冊。',
+    '外庭掃完。冊上另有一條：側門那兩棵銀杏，葉子多。',
   ],
-  setFlags: { fame: '+1', won_wang: 1 },
+  setFlags: { fame: '+1', won_wang: 1, sweep_done: 1 },
   choices: [
-    { text: '回外門', to: '__hub_done__' },
+    { text: '回外門', to: '__hub_sidemen__' },
   ],
 });
 
@@ -573,10 +575,265 @@ SCENES.wang_lose = () => ({
   loc: '外庭',
   paras: [
     '你坐在葉堆裡。王五把中間掃完，邊兒留給你。「記住。」他沒說記住什麼。外門的記住，都是同一句。',
-    '值事的人經過，當沒看見。你自己起來。氣血只剩一絲。差事冊今日無新條。',
+    '值事的人經過，當沒看見。你自己起來。氣血只剩一絲。冊上另有一條：側門那兩棵銀杏，葉子多。',
   ],
-  setFlags: { lost_wang: 1 },
+  setFlags: { lost_wang: 1, sweep_done: 1 },
   choices: [
-    { text: '回外門', to: '__hub_done__' },
+    { text: '回外門', to: '__hub_sidemen__' },
+  ],
+});
+
+
+SCENES.sidemen = (state) => {
+  const f = state.flags || {};
+  const named = f.xie_greet || f.xie_line || f.xie_hold;
+  const lead = named
+    ? '值事點你的名。不是職，是名。「側門那兩棵銀杏，謝師兄說葉子多。掃到側門即可。有人會看見。」即可兩個字說得輕。側門不是外門該久停的地方。'
+    : '值事沒點你的名。他只對這列說：「落葉拉到夾道盡頭倒。盡頭就是側門牆根。倒完就回。別站。」側門仍會經過。只是沒有人說看得見。';
+  const limp = f.token_jian
+    ? '鞋裡那枚牙牌硌著腳跟。你走得輕，輕得像石上有一顆沒掃走的子。'
+    : '罰站過的腳仍疼。你走得慢，不跛。';
+  return {
+    loc: '外庭至側門',
+    paras: [
+      '寅時。差事冊多了一條：掃側門銀杏。外庭的葉還沒乾，你已經要把筐往夾道盡頭送。',
+      lead,
+      limp,
+      '側門比你想的近。近，是因為外門的地圖從不把它畫清楚。畫清楚，就等於承認有路。兩棵銀杏夾門，葉金，葉落。門關著。門環是獸首，獸口不含環——環在裡頭。',
+    ],
+    setFlags: { sweep_done: 1 },
+    choices: [
+      { text: '掃完即走（別站）', setFlags: { leave_side: 1, safe: '+1' }, to: 'sidemen_leave' },
+      { text: '多停一息（看門）', setFlags: { linger_side: 1, seen_by_inner: 1 }, to: named ? 'sidemen_rope' : 'sidemen_linger' },
+      { text: '給阿禾留暗號', setFlags: { he_signal: 1, reveal_lean: '+1' }, to: 'sidemen_signal' },
+    ],
+  };
+};
+
+SCENES.sidemen_rope = () => ({
+  loc: '內門側門·銀杏',
+  paras: [
+    '窗紙後有一截青袖。不露臉。可那截袖的淨，你認得。',
+    '「掃。」聲音從窗紙後過來，溫的，「掃完，把筐放門左。別叩。」',
+    '葉進筐。你數自己的呼吸。數到三十，窗紙又動。「看見了。」他說。獎賞就這三個字。',
+    '一截細麻繩從窗縫墜下來，繩頭打了個極小的活結。「以後聽差，以繩為記。有繩，來側門。無繩，別來。繩不是名帖。別戴在明處。」',
+    '繩是獎。也是拴。你把它纏在腕內側，被袖蓋住。門仍關著。你多停的那一息，裡頭靴跟極輕地停過——停的位置，剛好對你。',
+  ],
+  setFlags: { xie_rope: 1, climb_lean: '+1', seen_by_inner: 1 },
+  choices: [
+    { text: '倒筐就走', to: 'sidemen_done' },
+    { text: '再停一息', setFlags: { linger_side: 1 }, to: 'sidemen_inner_intro' },
+  ],
+});
+
+SCENES.sidemen_linger = (state) => {
+  const fire = state.flags.token_jian
+    ? '門檻上有一點被蹭掉的火漆，紅得發黑。鞋裡的「薦」和這一點紅，在你腦子裡疊了一下。'
+    : '門檻上有一點被蹭掉的火漆，紅得發黑，和庫房空架裡的碎渣像一類東西。';
+  return {
+    loc: '內門側門·銀杏',
+    paras: [
+      '窗紙沒動。門關著。可你掃到第二棵銀杏下時，仍覺得有視線。也許是門環那對獸眼。也許不是。',
+      fire,
+      '你把最後一層葉刮得很細。細到葉脈都清晰。這不是勤快。這是站住。',
+      '門裡靴跟極輕地停。沒有問話。沒有開門。隨後門縫一開——出來的不是謝師兄。是內門雜役，燈罩提著，天已亮，燈卻沒熄。',
+    ],
+    setFlags: { fire_lacquer: 1, seen_by_inner: 1 },
+    next: 'sidemen_inner_intro',
+  };
+};
+
+SCENES.sidemen_leave = (state) => {
+  const extra = state.flags.xie_greet || state.flags.xie_line || state.flags.xie_hold
+    ? '你走得乾淨。窗紙後有極輕的一聲，像把紙放下。他看見你走。走得乾淨，有時比停得勤快更讓人記得。'
+    : '側門沒留你。你也沒留它。門檻上那點火漆，你只看了一眼。一眼不夠當憑據。';
+  return {
+    loc: '內門側門·銀杏',
+    paras: [
+      '葉滿即走。筐在牆根輕輕一頓，你已經轉身。門縫那點香被你留在背後，像沒聞見過。',
+      extra,
+      '夾道口，錢六攔著。他沒分到側門，分到的是外庭中間那塊——王五昨天剛讓過的地。「掃過銀杏就學內門的氣了？」他譏。譏完，筐先動。',
+    ],
+    next: 'qian_intro_side',
+  };
+};
+
+SCENES.sidemen_signal = (state) => {
+  const f = state.flags || {};
+  if (f.he_grudge || f.he_door === 0) {
+    return {
+      loc: '內門側門·銀杏',
+      paras: [
+        '你用掃帚柄在葉丘側邊劃開一條極淺的溝，溝裡嵌進三片葉尖朝外庭。從前有人用這法子報巡夜換班。劉三在的時候，也用過。後來沒人用了。',
+        '阿禾從另一列經過。他看見那三片葉。目光停了半息，像看見一把還沒出鞘的禍。他沒停。他把視線從溝上撕開，像撕一張會燒手的紙。',
+        '錢六看見了。不是暗號。是你蹲在側門牆根，像偷。他喊：「這邊有人藏葉！」喊完就上手。',
+      ],
+      setFlags: { he_signal_fail: 1 },
+      next: 'qian_intro_side',
+    };
+  }
+  return {
+    loc: '內門側門·銀杏',
+    paras: [
+      '你用掃帚柄在葉丘側邊劃開一條極淺的溝，溝裡嵌進三片葉尖朝外庭。外門掃葉的人認得：三片朝某個方向，是「那邊有事，別當眾問」。',
+      '阿禾的掃帚聲遠了一寸，又近了一寸。他沒抬頭。他把自己的筐往溝邊一頓，三片葉被他掃進筐底，像從沒存在過。這不是和解。這是他還能做的、最小的一件事。',
+      '內門雜役不知道葉尖的意思。他只知道你蹲得太久。燈罩一晃，人已經到了牆根。',
+    ],
+    setFlags: { he_signal_ok: 1, he_bond: '+1' },
+    next: 'sidemen_inner_intro',
+  };
+};
+
+SCENES.sidemen_inner_intro = () => ({
+  loc: '內門側門',
+  paras: [
+    '「掃完了還站什麼。」內門雜役把燈橫在胸前，「門不是給你們開的。謝師兄說看得見，看得見不是讓你看進去。」',
+    '他袖口一抖。外門的人在側門多停一息，就是他要向裡頭交代的事。交代不了，他就把你搡回去。搡，是差事。',
+  ],
+  battle: { enemyId: 'inner', onWin: 'sidemen_inner_win', onLose: 'sidemen_inner_lose' },
+});
+
+SCENES.sidemen_inner_win = () => ({
+  loc: '內門側門',
+  paras: [
+    '內門雜役退了半步。燈沒滅。他沒喊——喊了，裡頭要問為什麼一個外門能把他搡開。外門的沉默，內門也用。',
+    '「滾。」他說。滾字比記過輕。輕的意思是：這筆他私下記。你倒了筐。葉在牆根堆成一座小黃丘。',
+    '辰時前回外庭。核名的人看你來遲半刻，筆尖點了點，沒加罰。半刻還在「掃銀杏」能解釋的範圍裡。',
+  ],
+  setFlags: { won_inner: 1, fame: '+1', sidemen_done: 1 },
+  choices: [
+    { text: '回外門', to: '__hub_errand__' },
+  ],
+});
+
+SCENES.sidemen_inner_lose = () => ({
+  loc: '內門側門',
+  paras: [
+    '他按著你的肩，把你搡出夾道。燈罩還熱。「再站，報執法堂。」他沒報。報了，自己也要解釋為何門縫開過。',
+    '你坐在葉堆裡。氣血只剩一絲。筐是空的，差事算完。核名的人看你一身土，當罰站的續，沒另記。',
+  ],
+  setFlags: { lost_inner: 1, sidemen_done: 1 },
+  choices: [
+    { text: '回外門', to: '__hub_errand__' },
+  ],
+});
+
+SCENES.qian_intro_side = () => ({
+  loc: '夾道口',
+  paras: [
+    '錢六在外門一年零一個月，比王五更會找沒有執法的空當。側門的葉他掃不到，人他掃得到。',
+    '「冊上有墨的，也配過側門？」筐已經撞上來。',
+  ],
+  battle: { enemyId: 'qian', onWin: 'sidemen_qian_win', onLose: 'sidemen_qian_lose' },
+});
+
+SCENES.sidemen_qian_win = () => ({
+  loc: '夾道口',
+  paras: [
+    '錢六坐下。不是跪。他揉腕，把譏咽回去。葉還是那些葉。你把筐送回值事核。空的。空就是完。',
+    '午後沒有新條。側門那兩棵銀杏，你已經見過了。門仍關著。',
+  ],
+  setFlags: { won_qian: 1, fame: '+1', sidemen_done: 1 },
+  choices: [
+    { text: '回外門', to: '__hub_errand__' },
+  ],
+});
+
+SCENES.sidemen_qian_lose = () => ({
+  loc: '夾道口',
+  paras: [
+    '你坐在石上。錢六把筐踢回你身邊。「記住。」他沒說記住什麼。外門的記住，都是同一句。',
+    '值事的人經過，當沒看見。差事算完。氣血只剩一絲。',
+  ],
+  setFlags: { lost_qian: 1, sidemen_done: 1 },
+  choices: [
+    { text: '回外門', to: '__hub_errand__' },
+  ],
+});
+
+SCENES.sidemen_done = () => ({
+  loc: '外庭',
+  paras: [
+    '核名案驗了你的筐底。空的。空就是完。值事說：「過。」',
+    '銀杏葉的汁有一點澀。你把手在衣襟上擦乾。午後沒有新條。明日仍有差事。外門的日子，是一條接一條的。',
+  ],
+  setFlags: { sidemen_done: 1 },
+  choices: [
+    { text: '回外門', to: '__hub_errand__' },
+  ],
+});
+
+SCENES.errand = (state) => {
+  const n = (state.day || 4) % 3;
+  if (n === 1) {
+    return {
+      loc: '值事房廊下',
+      paras: [
+        '差事冊寫：送藥。外門藥房的粗包，送到值事房，再由內門的人來取。你碰不到內門的手，只碰得到廊下的風。',
+        '藥包在袖裡發苦。走到廊下第二根柱，錢六攔著。他沒領到這條差。「你送，我看。」看的不是藥。是你還會不會讓。',
+      ],
+      next: 'errand_qian',
+    };
+  }
+  if (n === 2) {
+    return {
+      loc: '外門夾道·黃昏',
+      paras: [
+        '差事冊寫：替巡。巡夜外門缺一人，值事把名點到你頭上。缺的人昨夜腿軟，加罰去了。你頂他的燈。',
+        '燈罩還熱。夾道裡有人不是巡夜——步子急，像要趕在核名之前把什麼東西換走。你喝了一聲。對方把燈一橫。',
+      ],
+      next: 'errand_patrol',
+    };
+  }
+  return {
+    loc: '外門庫房廊下',
+    paras: [
+      '差事冊寫：搬箱。箱是封好的。火漆新，印卻舊。你不開。開是死。搬，是活。',
+      '搬到轉角，王五又在。他不掃了。他攔路。「這箱沉。沉的分我一半記功。」箱不能分。記功更不能。他的手已經按上來。',
+    ],
+    next: 'errand_wang',
+  };
+};
+
+SCENES.errand_qian = () => ({
+  loc: '值事房廊下',
+  paras: ['錢六不讓路。藥包在袖裡，像一塊會被搶走的月例。'],
+  battle: { enemyId: 'qian', onWin: 'errand_win', onLose: 'errand_lose' },
+});
+
+SCENES.errand_patrol = () => ({
+  loc: '外門夾道·夜',
+  paras: ['巡夜的燈對上另一盞燈。兩盞燈都是外門的。外門打外門，值事房只問燈還在不在。'],
+  battle: { enemyId: 'patrol', onWin: 'errand_win', onLose: 'errand_lose' },
+});
+
+SCENES.errand_wang = () => ({
+  loc: '庫房廊下',
+  paras: ['王五要箱。你要活。箱在兩個人中間，火漆一碰就碎。'],
+  battle: { enemyId: 'wang', onWin: 'errand_win', onLose: 'errand_lose' },
+});
+
+SCENES.errand_win = () => ({
+  loc: '外門',
+  paras: [
+    '差事完了。值事在冊邊點了一點，像點一棵還在的樹。點完，碎銀兩文。兩文不夠贖記過，夠兌半包止血散。',
+    '外門還在。明日仍有雜差。功法還在腰上。你仍是青衡宗外門的雜役。',
+  ],
+  effects: { silver: 2 },
+  setFlags: { errand_done: '+1' },
+  choices: [
+    { text: '回外門', to: '__hub_errand__' },
+  ],
+});
+
+SCENES.errand_lose = () => ({
+  loc: '外門',
+  paras: [
+    '差事算完。完的意思是人還在冊上。值事當沒看見。碎銀沒有。記過有。',
+    '你自己起來。氣血只剩一絲。明日仍要出列。外門的日子，不因你跪過就停。',
+  ],
+  setFlags: { errand_done: '+1' },
+  choices: [
+    { text: '回外門', to: '__hub_errand__' },
   ],
 });

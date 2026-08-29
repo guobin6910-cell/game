@@ -40,6 +40,32 @@ export const ENEMIES = {
       { id: 'watch', name: '觀招', type: 'guard', power: 5, text: '王五退半步，看你還手不還。' },
     ],
   },
+  inner: {
+    id: 'inner',
+    name: '內門雜役',
+    hp: 36,
+    atk: 8,
+    def: 5,
+    moves: [
+      { id: 'shove', name: '搡出', type: 'damage', power: 11, text: '他把你往外庭方向搡。「側門不是給你們站的。」' },
+      { id: 'cuff', name: '袖口', type: 'damage', power: 13, text: '袖口抽在你頰上，輕，像記一筆不必入冊的過。' },
+      { id: 'ban', name: '禁停', type: 'special', power: 0, mpDrain: 3, text: '「別進門。」他一喝，你內息亂了半寸。' },
+      { id: 'watch', name: '觀招', type: 'guard', power: 7, text: '他擋在門環前，像一扇不會開的門。' },
+    ],
+  },
+  qian: {
+    id: 'qian',
+    name: '錢六',
+    hp: 32,
+    atk: 7,
+    def: 4,
+    moves: [
+      { id: 'kick', name: '踢筐', type: 'damage', power: 9, text: '錢六踢翻你腳邊的筐，藥包滾進石縫。' },
+      { id: 'elbow', name: '肘撞', type: 'damage', power: 12, text: '他肘往你肋下撞，專打搬箱的人。' },
+      { id: 'mock', name: '譏', type: 'special', power: 0, mpDrain: 2, text: '「掃過側門就學內門的氣了？」他譏。' },
+      { id: 'watch', name: '觀招', type: 'guard', power: 6, text: '錢六雙手一圈，看你還會不會還手。' },
+    ],
+  },
 };
 
 
@@ -114,9 +140,15 @@ export function applyBattleAction(state, action) {
       const mv = moveById(enemy, battle.intent);
       battle.log.push("你使「" + sk.name + "」。他身上息一短。他要「" + mv.name + "」。");
     }
+  } else if (action.type === "attack") {
+    const d = strike(stats.atk, 6, enemy.def, battle.enemyGuard);
+    battle.enemyHp = Math.max(0, battle.enemyHp - d);
+    battle.log.push("你出拙拳。不講路數，只講挨不挨得住。" + enemy.name + "挨了 " + d + "。");
   } else if (action.type === "guard") {
     battle.playerGuard = stats.def + 4;
-    battle.log.push("你觀招。不還手，先看他從哪裡來。");
+    const before = stats.mp;
+    stats.mp = Math.min(stats.maxMp, stats.mp + 3);
+    battle.log.push("你觀招。不還手，先看他從哪裡來。內息收回一寸（內力 " + before + "→" + stats.mp + "）。");
   } else if (action.type === "pill") {
     if (battle.pillUsed || !state.packedPill) {
       battle.log.push("沒有丹藥。");

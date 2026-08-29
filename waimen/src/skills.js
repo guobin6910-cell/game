@@ -35,6 +35,15 @@ export const SKILLS = {
   },
 };
 
+export const PUNCH = {
+  id: 'punch',
+  name: '拙拳',
+  type: 'damage',
+  cost: 0,
+  power: 7,
+  desc: '不會功法時也會握拳。勢短，不耗內力。外門人人會，人人不夠。',
+};
+
 export const START_SKILLS = ['qingheng', 'box'];
 
 export const PILL = {

@@ -350,7 +350,7 @@ function renderSettle() {
 function paintBot() {
   const bot = document.getElementById('bot');
   if (state.mode === 'hub') {
-    const mission = state.mission === 'done' ? '差事已畢' : `開始今日差事：${missionLabel(state)}`;
+    const mission = `開始今日差事：${missionLabel(state)}`;
     bot.innerHTML = `
       <button type="button" data-h="prep">準備</button>
       <button type="button" data-h="cult">修煉</button>
@@ -425,7 +425,7 @@ function paintBot() {
     const pill = state.packedPill && !state.battle.pillUsed
       ? `<button type="button" data-act="pill">${PILL.name}</button>`
       : '';
-    bot.innerHTML = `${skills}<button type="button" data-act="guard">觀招</button>${pill}`;
+    bot.innerHTML = `<button type="button" data-act="atk">拙拳</button>${skills}<button type="button" data-act="guard">觀招（回內力）</button>${pill}`;
     bot.querySelectorAll('[data-sk]').forEach((b) => {
       b.onclick = () => {
         state = battleAct(state, { type: 'skill', id: b.dataset.sk });
@@ -433,6 +433,11 @@ function paintBot() {
         paint();
       };
     });
+    bot.querySelector('[data-act="atk"]').onclick = () => {
+      state = battleAct(state, { type: 'attack' });
+      persist();
+      paint();
+    };
     bot.querySelector('[data-act="guard"]').onclick = () => {
       state = battleAct(state, { type: 'guard' });
       persist();

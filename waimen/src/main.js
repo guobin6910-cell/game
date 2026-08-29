@@ -1,176 +1,122 @@
 import './style.css';
-import script from './script/chapter1.json';
 import {
-  CAST,
-  BACKGROUNDS,
-  SPEED_MS,
+  newGame,
+  restoreState,
+  revealPara,
+  continueStory,
+  pickChoice,
+  goHub,
+  openPrep,
+  openSkills,
+  confirmPrep,
+  cultivate,
+  buyPill,
+  startMission,
+  battleAct,
+  continueSettle,
+  getScene,
   subst,
-  getNode,
-  parseSprites,
-  visibleChoices,
-  enterStart,
-  advance,
-} from './engine.js';
-import {
-  loadSettings,
-  saveSettings,
-  writeAuto,
-  readAuto,
-  writeSlot,
-  readSlot,
-  listSlots,
-  hasContinue,
-  formatSavedAt,
-} from './save.js';
+  missionLabel,
+} from './game.js';
+import { SKILLS, PILL, TYPE_LABEL } from './skills.js';
+import { describeIntent } from './combat.js';
+import { writeAuto, readAuto, hasContinue } from './save.js';
 
 const app = document.getElementById('app');
 
-const SPEED_LABEL = { slow: '慢', mid: '中', fast: '快', instant: '即顯' };
-
-let settings = loadSettings();
 let state = null;
-let typing = null;
-let shownFull = false;
-let uiMode = 'title'; // title | newgame | load | play | menu | save | settings | end
-
-function emptyFlags() {
-  return {};
-}
-
-function freshState(gender, name) {
-  return enterStart(script, {
-    gender: gender === 'female' ? 'female' : 'male',
-    playerName: (name && name.trim()) || '無名',
-    flags: emptyFlags(),
-  });
-}
-
-function restore(data) {
-  const node = getNode(script, data.nodeId);
-  return {
-    gender: data.gender === 'female' ? 'female' : 'male',
-    playerName: data.playerName || '無名',
-    flags: data.flags || {},
-    nodeId: data.nodeId,
-    ended: node?.type === 'end',
-    error: node ? null : 'missing-node',
-  };
-}
-
-function sceneLabel(node) {
-  if (!node) return script.chapter || '第一章';
-  return node.scene || script.chapter || '第一章';
-}
+let ui = 'title';
+let prepPick = [];
+let prepPill = false;
 
 function persist() {
-  if (!state) return;
-  writeAuto(state, { chapter: script.chapter, scene: sceneLabel(getNode(script, state.nodeId)) });
+  if (state) writeAuto(state);
 }
 
 function mount() {
   app.innerHTML = `
-    <div class="stage" id="stage">
-      <div class="bg bg-stone" id="bg"><div class="mist"></div></div>
-      <div class="wash-stroke"></div>
-      <div class="tap-layer" id="tap"></div>
-      <div class="sprites" id="sprites"></div>
-      <div class="hud" id="hud">
-        <div class="hud-title" id="hudTitle">外門 · 第一章</div>
-        <button type="button" id="btnMenu">選單</button>
-      </div>
-      <div class="dialogue" id="dialogue">
-        <div class="speaker hidden" id="speaker">旁白</div>
-        <div class="line" id="line"></div>
-        <div class="continue" id="continue">▼</div>
-      </div>
-      <div class="choices" id="choices" hidden></div>
-      <div class="screen" id="titleScreen"></div>
-      <div class="overlay hidden" id="overlay"></div>
+    <div class="shell" id="shell">
+      <header class="top" id="top"></header>
+      <main class="mid" id="mid"></main>
+      <footer class="bot" id="bot"></footer>
     </div>
+    <div class="overlay hidden" id="overlay"></div>
   `;
-  renderTitle();
-  bind();
-}
-
-function bind() {
-  document.getElementById('tap').addEventListener('click', onAdvance);
-  document.getElementById('dialogue').addEventListener('click', (e) => {
-    e.stopPropagation();
-    onAdvance();
-  });
-  document.getElementById('btnMenu').addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (uiMode === 'play' || uiMode === 'end') openMenu();
-  });
   window.addEventListener('keydown', onKey);
+  renderTitle();
 }
 
 function onKey(e) {
   if (e.repeat) return;
-  if (uiMode === 'play') {
-    const node = getNode(script, state.nodeId);
-    if (node?.type === 'choice') {
-      const n = Number(e.key);
-      if (n >= 1 && n <= 9) {
-        pickChoice(n - 1);
-        e.preventDefault();
-        return;
-      }
-    }
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onAdvance();
-    }
-    if (e.key === 'Escape') openMenu();
-  } else if (uiMode === 'menu' || uiMode === 'save' || uiMode === 'settings' || uiMode === 'load') {
-    if (e.key === 'Escape') {
-      if (state && (uiMode !== 'title')) closeOverlayToPlay();
-    }
+  if (e.key === 'Escape') {
+    if (ui === 'play' && state) openMenu();
+    return;
+  }
+  if (ui !== 'play' || !state) return;
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    const more = document.querySelector('[data-act="more"]');
+    if (more) more.click();
+  }
+  const n = Number(e.key);
+  if (n >= 1 && n <= 9) {
+    const btn = document.querySelector(`[data-choice="${n - 1}"]`);
+    if (btn) btn.click();
   }
 }
 
-function hidePlayUi(hide) {
-  document.getElementById('dialogue').style.display = hide ? 'none' : '';
-  document.getElementById('sprites').style.display = hide ? 'none' : '';
-  document.getElementById('hud').style.visibility = hide ? 'hidden' : 'visible';
-  document.getElementById('choices').hidden = true;
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+function bar(cur, max, cls) {
+  const pct = max > 0 ? Math.max(0, Math.min(100, Math.round((cur / max) * 100))) : 0;
+  return `<div class="bar ${cls}"><i style="width:${pct}%"></i></div>`;
 }
 
 function renderTitle() {
-  uiMode = 'title';
-  stopType();
-  const el = document.getElementById('titleScreen');
-  el.classList.remove('hidden');
+  ui = 'title';
+  state = null;
+  const shell = document.getElementById('shell');
+  shell.dataset.screen = 'title';
+  document.getElementById('top').innerHTML = '';
+  document.getElementById('bot').innerHTML = '';
   document.getElementById('overlay').classList.add('hidden');
-  document.getElementById('dialogue').style.display = 'none';
-  document.getElementById('sprites').style.display = 'none';
-  document.getElementById('hud').style.visibility = 'hidden';
-  document.getElementById('choices').hidden = true;
-  el.innerHTML = `
-    <div class="seal">青衡</div>
-    <h1 class="game-title">外門</h1>
-    <p class="game-sub">第一幕 · 第一章　盤庫</p>
-    <div class="menu">
-      <button type="button" data-act="new">新的故事</button>
-      <button type="button" data-act="cont" ${hasContinue() ? '' : 'disabled'}>繼續</button>
-      <button type="button" data-act="load">讀檔</button>
+  document.getElementById('mid').innerHTML = `
+    <div class="title-wrap">
+      <div class="seal">青衡</div>
+      <h1 class="game-title">外門</h1>
+      <p class="game-sub">文字RPG　第一幕 · 盤庫</p>
+      <p class="game-tag">外門雜役 · 煉體 · 門規合法</p>
+      <div class="menu">
+        <button type="button" data-act="new">新的故事</button>
+        <button type="button" data-act="cont" ${hasContinue() ? '' : 'disabled'}>繼續</button>
+      </div>
     </div>
   `;
-  el.querySelector('[data-act="new"]').onclick = renderNewGame;
-  el.querySelector('[data-act="cont"]').onclick = () => {
+  document.querySelector('[data-act="new"]').onclick = renderCreate;
+  document.querySelector('[data-act="cont"]').onclick = () => {
     const data = readAuto();
-    if (data) startFromSave(data);
+    const restored = restoreState(data);
+    if (restored) {
+      state = restored;
+      ui = 'play';
+      paint();
+    }
   };
-  el.querySelector('[data-act="load"]').onclick = () => renderLoad(true);
 }
 
-function renderNewGame() {
-  uiMode = 'newgame';
-  const el = document.getElementById('titleScreen');
+function renderCreate() {
+  ui = 'create';
+  document.getElementById('shell').dataset.screen = 'title';
   let gender = 'male';
-  el.innerHTML = `
+  document.getElementById('mid').innerHTML = `
     <div class="panel">
-      <h2>新的故事</h2>
+      <h2>建立角色</h2>
       <label>身分</label>
       <div class="row">
         <button type="button" class="pick on" data-g="male">男</button>
@@ -182,378 +128,381 @@ function renderNewGame() {
       <button type="button" class="back" id="backBtn">返回</button>
     </div>
   `;
-  el.querySelectorAll('[data-g]').forEach((btn) => {
+  document.getElementById('bot').innerHTML = '';
+  document.querySelectorAll('[data-g]').forEach((btn) => {
     btn.onclick = () => {
       gender = btn.dataset.g;
-      el.querySelectorAll('[data-g]').forEach((b) => b.classList.toggle('on', b === btn));
+      document.querySelectorAll('[data-g]').forEach((b) => b.classList.toggle('on', b === btn));
     };
   });
-  el.querySelector('#startBtn').onclick = () => {
-    const name = el.querySelector('#nameInput').value;
-    state = freshState(gender, name);
+  document.getElementById('startBtn').onclick = () => {
+    const name = document.getElementById('nameInput').value;
+    state = newGame(gender, name);
+    ui = 'play';
     persist();
-    beginPlay();
+    paint();
   };
-  el.querySelector('#backBtn').onclick = renderTitle;
+  document.getElementById('backBtn').onclick = renderTitle;
 }
 
-function renderLoad(fromTitle) {
-  uiMode = 'load';
-  const slots = listSlots();
-  const body = (label, data, key) => {
-    if (!data) {
-      return `<button type="button" class="slot" data-k="${key}" disabled>
-        <div class="k">${label}</div>
-        <div class="d">空</div>
-      </button>`;
-    }
-    return `<button type="button" class="slot" data-k="${key}">
-      <div class="k">${label}　${escapeHtml(data.playerName || '無名')}</div>
-      <div class="d">${escapeHtml(data.chapter || '第一章')}　${formatSavedAt(data.savedAt)}</div>
-    </button>`;
-  };
-  const inner = `
-    <div class="panel">
-      <h2>讀檔</h2>
-      ${body('自動', slots.auto, 'auto')}
-      ${body('一', slots[1], '1')}
-      ${body('二', slots[2], '2')}
-      ${body('三', slots[3], '3')}
-      <button type="button" class="back" id="backBtn">返回</button>
+function paint() {
+  ui = 'play';
+  const shell = document.getElementById('shell');
+  shell.dataset.screen = state.mode;
+  document.getElementById('overlay').classList.add('hidden');
+  paintTop();
+  paintMid();
+  paintBot();
+  const mid = document.getElementById('mid');
+  mid.scrollTop = mid.scrollHeight;
+}
+
+function paintTop() {
+  if (!state || state.mode === 'title') {
+    document.getElementById('top').innerHTML = '';
+    return;
+  }
+  const s = state.stats;
+  const dem = state.flags.demerit || 0;
+  document.getElementById('top').innerHTML = `
+    <div class="who">
+      <div class="who-name">${escapeHtml(state.name)}</div>
+      <div class="who-realm">外門煉體</div>
+    </div>
+    <button type="button" class="menu-btn" id="btnMenu">選單</button>
+    <div class="meters">
+      <div class="meter"><span>氣血</span>${bar(s.hp, s.maxHp, 'hp')}<b>${s.hp}/${s.maxHp}</b></div>
+      <div class="meter"><span>內力</span>${bar(s.mp, s.maxMp, 'mp')}<b>${s.mp}/${s.maxMp}</b></div>
+    </div>
+    <div class="chips">
+      <span>碎銀 ${s.silver}</span>
+      <span>記過 ${dem}</span>
+      <span>經驗 ${s.exp}</span>
     </div>
   `;
-  if (fromTitle) {
-    const el = document.getElementById('titleScreen');
-    el.classList.remove('hidden');
-    el.innerHTML = inner;
-    el.querySelector('#backBtn').onclick = renderTitle;
-    el.querySelectorAll('.slot:not(:disabled)').forEach((b) => {
-      b.onclick = () => startFromSave(b.dataset.k === 'auto' ? slots.auto : slots[Number(b.dataset.k)]);
-    });
-  } else {
-    showOverlay(inner);
-    document.querySelector('#overlay #backBtn').onclick = openMenu;
-    document.querySelectorAll('#overlay .slot:not(:disabled)').forEach((b) => {
-      b.onclick = () => startFromSave(b.dataset.k === 'auto' ? slots.auto : slots[Number(b.dataset.k)]);
-    });
+  document.getElementById('btnMenu').onclick = (e) => {
+    e.stopPropagation();
+    openMenu();
+  };
+}
+
+function paintMid() {
+  const mid = document.getElementById('mid');
+  if (state.mode === 'hub') {
+    mid.innerHTML = renderHub();
+    return;
+  }
+  if (state.mode === 'prep') {
+    mid.innerHTML = renderPrep();
+    bindPrep();
+    return;
+  }
+  if (state.mode === 'skills') {
+    mid.innerHTML = renderSkillBook();
+    return;
+  }
+  if (state.mode === 'battle') {
+    mid.innerHTML = renderBattle();
+    return;
+  }
+  if (state.mode === 'settle') {
+    mid.innerHTML = renderSettle();
+    return;
+  }
+  mid.innerHTML = renderLog();
+}
+
+function renderLog() {
+  const scene = getScene(state.sceneId, state);
+  const loc = scene ? subst(scene.loc || '', state) : '';
+  const entries = (state.log || [])
+    .map((e) => {
+      const cls = e.kind || 'p';
+      return `<p class="log-${cls}">${escapeHtml(e.text)}</p>`;
+    })
+    .join('');
+  return `<div class="loc">${escapeHtml(loc)}</div><div class="log">${entries}</div>`;
+}
+
+function renderHub() {
+  const f = state.flags;
+  const notes = [];
+  notes.push(`第${state.day}日　差事：${missionLabel(state)}`);
+  if (f.he_confides) notes.push('阿禾：還肯說話。');
+  else if (f.he_fear || f.he_grudge) notes.push('阿禾：門關著。');
+  else if (f.willful_blind) notes.push('阿禾：當你沒看見。');
+  if (f.xie_hold || f.xie_cover || f.xie_line) notes.push('謝承淵：傘在，也是繩。');
+  if (f.token_jian) notes.push('鞋裡有「薦」。');
+  if (f.box_clue) notes.push('箱出庫時比入庫輕。');
+  if (f.won_zhao) notes.push('趙師兄退過。掃地掃勢已入冊。');
+  const learned = state.learned.map((id) => SKILLS[id]?.name).filter(Boolean).join('、');
+  return `
+    <div class="loc">青衡宗 · 外門</div>
+    <div class="hub-prose">
+      <p>雜役院。通鋪潮，土階乾。功法冊在枕下，丹藥在袖。門規把日子一寸寸削下去，削得合法。</p>
+      <p class="journal">${notes.map(escapeHtml).join('<br>')}</p>
+      <p class="muted">已習：${escapeHtml(learned || '無')}</p>
+      ${state.notice ? `<p class="notice">${escapeHtml(state.notice)}</p>` : ''}
+    </div>
+  `;
+}
+
+function renderPrep() {
+  const cards = state.learned
+    .map((id) => {
+      const sk = SKILLS[id];
+      if (!sk) return '';
+      const on = prepPick.includes(id) ? ' on' : '';
+      return `<button type="button" class="card${on}" data-sk="${id}">
+        <div class="card-top"><b>${escapeHtml(sk.name)}</b><em>${TYPE_LABEL[sk.type]}</em></div>
+        <div class="card-meta">耗內力 ${sk.cost}　勢 ${sk.power}</div>
+        <p>${escapeHtml(sk.desc)}</p>
+      </button>`;
+    })
+    .join('');
+  const canPill = state.pills > 0;
+  const pillOn = prepPill && canPill ? ' on' : '';
+  return `
+    <div class="loc">準備</div>
+    <p class="muted">出任務前選至多三門功法，可備一包止血散。點名未起，空手出列，先記過。</p>
+    <div class="cards">${cards}</div>
+    <button type="button" class="card${pillOn}" data-pill="1" ${canPill ? '' : 'disabled'}>
+      <div class="card-top"><b>${PILL.name}</b><em>丹</em></div>
+      <div class="card-meta">存 ${state.pills}　回氣血 ${PILL.heal}</div>
+      <p>${escapeHtml(PILL.desc)}</p>
+    </button>
+    ${state.notice ? `<p class="notice">${escapeHtml(state.notice)}</p>` : ''}
+  `;
+}
+
+function bindPrep() {
+  document.querySelectorAll('[data-sk]').forEach((btn) => {
+    btn.onclick = () => {
+      const id = btn.dataset.sk;
+      if (prepPick.includes(id)) prepPick = prepPick.filter((x) => x !== id);
+      else if (prepPick.length < 3) prepPick = [...prepPick, id];
+      paint();
+    };
+  });
+  const pillBtn = document.querySelector('[data-pill]');
+  if (pillBtn && !pillBtn.disabled) {
+    pillBtn.onclick = () => {
+      prepPill = !prepPill;
+      paint();
+    };
   }
 }
 
-function startFromSave(data) {
-  state = restore(data);
-  persist();
-  beginPlay();
+function renderSkillBook() {
+  const cards = state.learned
+    .map((id) => {
+      const sk = SKILLS[id];
+      if (!sk) return '';
+      return `<div class="card static">
+        <div class="card-top"><b>${escapeHtml(sk.name)}</b><em>${TYPE_LABEL[sk.type]}</em></div>
+        <div class="card-meta">耗內力 ${sk.cost}　勢 ${sk.power}</div>
+        <p>${escapeHtml(sk.desc)}</p>
+      </div>`;
+    })
+    .join('');
+  return `<div class="loc">功法冊</div><div class="cards">${cards || '<p class="muted">冊是空的。</p>'}</div>`;
 }
 
-function beginPlay() {
-  document.getElementById('titleScreen').classList.add('hidden');
-  document.getElementById('overlay').classList.add('hidden');
-  document.getElementById('dialogue').style.display = '';
-  document.getElementById('sprites').style.display = '';
-  document.getElementById('hud').style.visibility = 'visible';
-  uiMode = 'play';
-  paintNode(true);
-}
-
-function openMenu() {
-  uiMode = 'menu';
-  showOverlay(`
-    <div class="sheet">
-      <h2>選單</h2>
-      <div class="menu">
-        <button type="button" data-act="resume">繼續遊玩</button>
-        <button type="button" data-act="save">存檔</button>
-        <button type="button" data-act="load">讀檔</button>
-        <button type="button" data-act="set">文字速度</button>
-        <button type="button" data-act="title">回標題</button>
+function renderBattle() {
+  const b = state.battle;
+  const s = state.stats;
+  const intent = b.sensing > 0 ? `<p class="intent">${escapeHtml(describeIntent(b))}</p>` : '';
+  const blog = b.log.map((t) => `<p class="log-battle">${escapeHtml(t)}</p>`).join('');
+  return `
+    <div class="loc">衝突</div>
+    <div class="fight">
+      <div class="side">
+        <div class="side-name">${escapeHtml(b.name)}</div>
+        ${bar(b.enemyHp, b.enemyMaxHp, 'hp')}
+        <b>${b.enemyHp}/${b.enemyMaxHp}</b>
+      </div>
+      <div class="side">
+        <div class="side-name">${escapeHtml(state.name)}</div>
+        ${bar(s.hp, s.maxHp, 'hp')}
+        <b>${s.hp}/${s.maxHp}</b>
       </div>
     </div>
-  `);
-  const ov = document.getElementById('overlay');
-  ov.querySelector('[data-act="resume"]').onclick = closeOverlayToPlay;
-  ov.querySelector('[data-act="save"]').onclick = renderSave;
-  ov.querySelector('[data-act="load"]').onclick = () => renderLoad(false);
-  ov.querySelector('[data-act="set"]').onclick = renderSettings;
-  ov.querySelector('[data-act="title"]').onclick = () => {
-    state = null;
-    renderTitle();
-  };
+    ${intent}
+    <div class="log battle-log">${blog}</div>
+  `;
 }
 
-function renderSave() {
-  uiMode = 'save';
-  const slots = listSlots();
-  const one = (n) => {
-    const data = slots[n];
-    const d = data
-      ? `${escapeHtml(data.playerName || '無名')}　${formatSavedAt(data.savedAt)}`
-      : '空';
-    return `<button type="button" class="slot" data-n="${n}">
-      <div class="k">檔位 ${['', '一', '二', '三'][n]}</div>
-      <div class="d">${d}</div>
-    </button>`;
-  };
-  showOverlay(`
-    <div class="sheet">
-      <h2>存檔</h2>
-      ${one(1)}${one(2)}${one(3)}
-      <button type="button" class="back" id="backBtn">返回</button>
+function renderSettle() {
+  const se = state.settle;
+  const win = se.result === 'win';
+  return `
+    <div class="loc">結算</div>
+    <div class="settle">
+      <h2>${win ? '這一場算你' : '這一場不算死'}</h2>
+      <p>${escapeHtml(se.enemy)}　${win ? '退了' : '你跪過'}</p>
+      <p>經驗 +${se.exp}</p>
+      ${win ? '' : '<p>記過 +1。氣血只剩一絲。</p>'}
+      <p class="muted">勝敗都要繼續當差。門規不給外門「結束」。 </p>
     </div>
-  `);
-  document.querySelectorAll('#overlay .slot').forEach((b) => {
-    b.onclick = () => {
-      writeSlot(Number(b.dataset.n), state, {
-        chapter: script.chapter,
-        scene: sceneLabel(getNode(script, state.nodeId)),
-      });
+  `;
+}
+
+function paintBot() {
+  const bot = document.getElementById('bot');
+  if (state.mode === 'hub') {
+    const mission = state.mission === 'done' ? '差事已畢' : `開始今日差事：${missionLabel(state)}`;
+    bot.innerHTML = `
+      <button type="button" data-h="prep">準備</button>
+      <button type="button" data-h="cult">修煉</button>
+      <button type="button" data-h="go">${escapeHtml(mission)}</button>
+      <button type="button" data-h="book">功法冊</button>
+      <button type="button" data-h="pill">兌止血散（四文）</button>
+    `;
+    bot.querySelector('[data-h="prep"]').onclick = () => {
+      prepPick = state.loadout.slice();
+      prepPill = state.packedPill && state.pills > 0;
+      state = openPrep(state);
       persist();
-      renderSave();
+      paint();
     };
-  });
-  document.querySelector('#overlay #backBtn').onclick = openMenu;
-}
-
-function renderSettings() {
-  uiMode = 'settings';
-  const cur = settings.textSpeed || 'mid';
-  const btns = Object.keys(SPEED_LABEL)
-    .map(
-      (k) =>
-        `<button type="button" data-sp="${k}" class="${k === cur ? 'on' : ''}">${SPEED_LABEL[k]}</button>`
-    )
-    .join('');
-  showOverlay(`
-    <div class="sheet">
-      <h2>文字速度</h2>
-      <div class="speeds">${btns}</div>
-      <button type="button" class="back" id="backBtn">返回</button>
-    </div>
-  `);
-  document.querySelectorAll('#overlay [data-sp]').forEach((b) => {
-    b.onclick = () => {
-      settings = { ...settings, textSpeed: b.dataset.sp };
-      saveSettings(settings);
-      renderSettings();
+    bot.querySelector('[data-h="cult"]').onclick = () => {
+      state = cultivate(state);
+      persist();
+      paint();
     };
-  });
-  document.querySelector('#overlay #backBtn').onclick = openMenu;
-}
-
-function showOverlay(html) {
-  const ov = document.getElementById('overlay');
-  ov.classList.remove('hidden');
-  ov.innerHTML = html;
-}
-
-function closeOverlayToPlay() {
-  document.getElementById('overlay').classList.add('hidden');
-  uiMode = state?.ended ? 'end' : 'play';
-  if (state?.ended) renderEnd();
-}
-
-function onAdvance() {
-  if (uiMode !== 'play' || !state) return;
-  const node = getNode(script, state.nodeId);
-  if (!node) return;
-  if (node.type === 'choice') return;
-  if (node.type === 'end') {
-    uiMode = 'end';
-    renderEnd();
+    bot.querySelector('[data-h="go"]').onclick = () => {
+      state = startMission(state);
+      persist();
+      paint();
+    };
+    bot.querySelector('[data-h="book"]').onclick = () => {
+      state = openSkills(state);
+      persist();
+      paint();
+    };
+    bot.querySelector('[data-h="pill"]').onclick = () => {
+      state = buyPill(state);
+      persist();
+      paint();
+    };
     return;
   }
-  if (!shownFull) {
-    finishType();
+  if (state.mode === 'prep') {
+    bot.innerHTML = `
+      <button type="button" class="primary" data-act="ok">確認準備</button>
+      <button type="button" data-act="back">返回</button>
+    `;
+    bot.querySelector('[data-act="ok"]').onclick = () => {
+      state = confirmPrep(state, prepPick, prepPill);
+      persist();
+      paint();
+    };
+    bot.querySelector('[data-act="back"]').onclick = () => {
+      state = goHub(state);
+      persist();
+      paint();
+    };
     return;
   }
-  goNext();
-}
-
-function goNext(choiceIndex) {
-  const prev = state.nodeId;
-  state = advance(script, state, choiceIndex);
-  if (state.error) {
-    console.error('script error', state.error, state.nodeId, 'from', prev);
-  }
-  persist();
-  if (state.ended || getNode(script, state.nodeId)?.type === 'end') {
-    paintNode(true);
+  if (state.mode === 'skills') {
+    bot.innerHTML = `<button type="button" data-act="back">返回</button>`;
+    bot.querySelector('[data-act="back"]').onclick = () => {
+      state = goHub(state);
+      persist();
+      paint();
+    };
     return;
   }
-  paintNode(false);
-}
-
-function pickChoice(i) {
-  const node = getNode(script, state.nodeId);
-  const choices = visibleChoices(node, state.flags);
-  if (!choices[i]) return;
-  goNext(i);
-}
-
-function paintNode(immediate) {
-  const node = getNode(script, state.nodeId);
-  if (!node) return;
-  if (node.type === 'end') {
-    renderEnd();
-    return;
-  }
-
-  if (node.background) applyBackground(node.background);
-  if (node.sprite !== undefined) renderSprites(node.sprite);
-  document.getElementById('hudTitle').textContent =
-    '外門 · ' + (node.scene || '第一章');
-
-  const speakerEl = document.getElementById('speaker');
-  const lineEl = document.getElementById('line');
-  const cont = document.getElementById('continue');
-  const choiceBox = document.getElementById('choices');
-
-  if (node.type === 'choice') {
-    if (node.text) {
-      document.getElementById('dialogue').style.display = '';
-      const sp = node.speaker || '';
-      speakerEl.textContent = sp;
-      speakerEl.classList.toggle('hidden', !sp);
-      lineEl.className = 'line' + (sp ? '' : ' narration');
-      typeText(subst(node.text, state), immediate || settings.textSpeed === 'instant');
-    } else {
-      document.getElementById('dialogue').style.display = '';
-      stopType();
-      shownFull = true;
-    }
-    cont.style.visibility = 'hidden';
-    const choices = visibleChoices(node, state.flags);
-    choiceBox.hidden = false;
-    choiceBox.innerHTML = choices
-      .map(
-        (c, i) =>
-          `<button type="button" class="choice" data-i="${i}"><span class="num">${i + 1}</span>${escapeHtml(
-            subst(c.text, state)
-          )}</button>`
-      )
+  if (state.mode === 'battle' && state.battle && !state.battle.result) {
+    const skills = state.loadout
+      .map((id) => SKILLS[id])
+      .filter(Boolean)
+      .map((sk) => {
+        const low = state.stats.mp < sk.cost;
+        return `<button type="button" data-sk="${sk.id}" ${low ? 'disabled' : ''}>${escapeHtml(sk.name)}　${sk.cost}</button>`;
+      })
       .join('');
-    choiceBox.querySelectorAll('.choice').forEach((b) => {
-      b.onclick = (e) => {
-        e.stopPropagation();
-        pickChoice(Number(b.dataset.i));
+    const pill = state.packedPill && !state.battle.pillUsed
+      ? `<button type="button" data-act="pill">${PILL.name}</button>`
+      : '';
+    bot.innerHTML = `${skills}<button type="button" data-act="guard">觀招</button>${pill}`;
+    bot.querySelectorAll('[data-sk]').forEach((b) => {
+      b.onclick = () => {
+        state = battleAct(state, { type: 'skill', id: b.dataset.sk });
+        persist();
+        paint();
+      };
+    });
+    bot.querySelector('[data-act="guard"]').onclick = () => {
+      state = battleAct(state, { type: 'guard' });
+      persist();
+      paint();
+    };
+    const pb = bot.querySelector('[data-act="pill"]');
+    if (pb) {
+      pb.onclick = () => {
+        state = battleAct(state, { type: 'pill' });
+        persist();
+        paint();
+      };
+    }
+    return;
+  }
+  if (state.mode === 'settle') {
+    bot.innerHTML = `<button type="button" class="primary" data-act="more">繼續</button>`;
+    bot.querySelector('[data-act="more"]').onclick = () => {
+      state = continueSettle(state);
+      persist();
+      paint();
+    };
+    return;
+  }
+  // story
+  if (state.awaiting === 'choice') {
+    const scene = getScene(state.sceneId, state);
+    const btns = (scene?.choices || [])
+      .map((c, i) => `<button type="button" data-choice="${i}"><span class="num">${i + 1}</span>${escapeHtml(subst(c.text, state))}</button>`)
+      .join('');
+    bot.innerHTML = btns;
+    bot.querySelectorAll('[data-choice]').forEach((b) => {
+      b.onclick = () => {
+        state = pickChoice(state, Number(b.dataset.choice));
+        persist();
+        paint();
       };
     });
     return;
   }
-
-  document.getElementById('dialogue').style.display = '';
-  choiceBox.hidden = true;
-  choiceBox.innerHTML = '';
-  const sp = node.speaker || '';
-  speakerEl.textContent = sp;
-  speakerEl.classList.toggle('hidden', !sp);
-  lineEl.className = 'line' + (sp ? '' : ' narration');
-  cont.style.visibility = 'hidden';
-  typeText(subst(node.text || '', state), immediate || settings.textSpeed === 'instant');
-}
-
-function typeText(text, instant) {
-  stopType();
-  const lineEl = document.getElementById('line');
-  const cont = document.getElementById('continue');
-  if (instant || SPEED_MS[settings.textSpeed] === 0) {
-    lineEl.textContent = text;
-    shownFull = true;
-    cont.style.visibility = 'visible';
-    return;
-  }
-  shownFull = false;
-  lineEl.textContent = '';
-  const ms = SPEED_MS[settings.textSpeed] ?? 22;
-  const chars = Array.from(text);
-  let i = 0;
-  typing = {
-    text,
-    timer: setInterval(() => {
-      i += 1;
-      lineEl.textContent = chars.slice(0, i).join('');
-      if (i >= chars.length) finishType();
-    }, ms),
+  const label = state.awaiting === 'battle_ready' ? '應戰' : '繼續';
+  bot.innerHTML = `<button type="button" class="primary" data-act="more">${label}</button>`;
+  bot.querySelector('[data-act="more"]').onclick = () => {
+    if (state.awaiting === 'more' ) state = revealPara(state);
+    else state = continueStory(state);
+    persist();
+    paint();
   };
 }
 
-function finishType() {
-  if (!typing) {
-    shownFull = true;
-    return;
-  }
-  const lineEl = document.getElementById('line');
-  lineEl.textContent = typing.text;
-  stopType();
-  shownFull = true;
-  document.getElementById('continue').style.visibility = 'visible';
-}
-
-function stopType() {
-  if (typing?.timer) clearInterval(typing.timer);
-  typing = null;
-}
-
-function applyBackground(name) {
-  const bg = document.getElementById('bg');
-  const cls = BACKGROUNDS[name] || bg.dataset.keep || 'bg-stone';
-  if (name) bg.dataset.keep = cls;
-  bg.className = 'bg ' + (name ? cls : bg.dataset.keep || 'bg-stone');
-  if (!bg.querySelector('.mist')) {
-    const m = document.createElement('div');
-    m.className = 'mist';
-    bg.appendChild(m);
-  }
-}
-
-function renderSprites(sprite) {
-  const wrap = document.getElementById('sprites');
-  const list = parseSprites(sprite);
-  wrap.innerHTML = list
-    .map((s) => {
-      const meta = CAST[s.id] || { name: s.id, cls: 'clerk' };
-      const far = s.far || s.id === 'wei' ? ' far' : '';
-      return `<div class="sprite ${meta.cls} slot-${s.slot}${far}">
-        <div class="portrait">
-          <div class="ink-head"></div>
-          <div class="ink-body"></div>
-          <div class="ink-collar"></div>
-        </div>
-        <div class="sprite-label">${escapeHtml(meta.name)}</div>
-      </div>`;
-    })
-    .join('');
-}
-
-function renderEnd() {
-  uiMode = 'end';
-  stopType();
-  persist();
-  const node = getNode(script, state.nodeId);
-  const extra = subst(node?.text || '夜深。寅時還遠。', state);
-  document.getElementById('titleScreen').classList.remove('hidden');
-  document.getElementById('dialogue').style.display = 'none';
-  document.getElementById('choices').hidden = true;
-  document.getElementById('overlay').classList.add('hidden');
-  document.getElementById('titleScreen').innerHTML = `
-    <div class="end-card">
-      <h2>第一章　終</h2>
-      <p>${escapeHtml(extra)}</p>
-      <div class="end-actions">
-        <button type="button" id="toTitle">回到標題</button>
-        <button type="button" id="toLoad">讀檔</button>
+function openMenu() {
+  const ov = document.getElementById('overlay');
+  ov.classList.remove('hidden');
+  ov.innerHTML = `
+    <div class="sheet">
+      <h2>選單</h2>
+      <div class="menu">
+        <button type="button" data-act="resume">繼續遊玩</button>
+        <button type="button" data-act="title">回標題</button>
       </div>
+      <p class="muted">進度已自動寫入本機。</p>
     </div>
   `;
-  document.getElementById('toTitle').onclick = renderTitle;
-  document.getElementById('toLoad').onclick = () => renderLoad(true);
-}
-
-function escapeHtml(s) {
-  return String(s)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;');
+  ov.querySelector('[data-act="resume"]').onclick = () => {
+    ov.classList.add('hidden');
+  };
+  ov.querySelector('[data-act="title"]').onclick = () => {
+    persist();
+    renderTitle();
+  };
 }
 
 mount();

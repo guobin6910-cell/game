@@ -1,7 +1,5 @@
-const PREFIX = 'waimen';
-const AUTO = `${PREFIX}_auto`;
-const SETTINGS = `${PREFIX}_settings`;
-const slotKey = (n) => `${PREFIX}_slot_${n}`;
+const AUTO = 'waimen_rpg_auto';
+const SETTINGS = 'waimen_rpg_settings';
 
 function nowIso() {
   return new Date().toISOString();
@@ -25,58 +23,51 @@ export function saveSettings(settings) {
   localStorage.setItem(SETTINGS, JSON.stringify(settings));
 }
 
-export function snapshot(state, extra = {}) {
+export function snapshot(state) {
   return {
-    version: 1,
+    version: 2,
     savedAt: nowIso(),
-    nodeId: state.nodeId,
-    flags: state.flags || {},
-    playerName: state.playerName || '無名',
-    gender: state.gender || 'male',
-    chapter: extra.chapter || '第一章：盤庫',
-    scene: extra.scene || '',
+    gender: state.gender,
+    name: state.name,
+    mode: state.mode,
+    sceneId: state.sceneId,
+    paraIndex: state.paraIndex,
+    log: state.log,
+    flags: state.flags,
+    stats: state.stats,
+    learned: state.learned,
+    loadout: state.loadout,
+    pills: state.pills,
+    packedPill: state.packedPill,
+    day: state.day,
+    mission: state.mission,
+    battle: state.battle,
+    settle: state.settle,
+    cultivatedToday: state.cultivatedToday,
   };
 }
 
-export function writeAuto(state, extra) {
-  localStorage.setItem(AUTO, JSON.stringify(snapshot(state, extra)));
+export function writeAuto(state) {
+  if (!state || state.mode === 'title' || state.mode === 'create') return;
+  localStorage.setItem(AUTO, JSON.stringify(snapshot(state)));
 }
 
 export function readAuto() {
-  return read(AUTO);
-}
-
-export function writeSlot(n, state, extra) {
-  localStorage.setItem(slotKey(n), JSON.stringify(snapshot(state, extra)));
-}
-
-export function readSlot(n) {
-  return read(slotKey(n));
-}
-
-export function listSlots() {
-  return {
-    auto: readAuto(),
-    1: readSlot(1),
-    2: readSlot(2),
-    3: readSlot(3),
-  };
-}
-
-export function hasContinue() {
-  return Boolean(readAuto());
-}
-
-function read(key) {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = localStorage.getItem(AUTO);
     if (!raw) return null;
     const data = JSON.parse(raw);
-    if (!data || data.version !== 1 || !data.nodeId) return null;
+    if (!data || data.version !== 2) return null;
+    if (!data.stats || !data.sceneId && data.mode === 'story') return data;
     return data;
   } catch {
     return null;
   }
+}
+
+export function hasContinue() {
+  const d = readAuto();
+  return Boolean(d && d.stats);
 }
 
 export function formatSavedAt(iso) {

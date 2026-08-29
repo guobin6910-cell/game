@@ -90,7 +90,7 @@ function renderTitle() {
     <div class="title-wrap">
       <div class="seal">青衡</div>
       <h1 class="game-title">外門</h1>
-      <p class="game-sub">文字RPG　第一幕 · 盤庫</p>
+      <p class="game-sub">文字RPG　第一幕</p>
       <p class="game-tag">外門雜役 · 煉體 · 門規合法</p>
       <div class="menu">
         <button type="button" data-act="new">新的故事</button>
@@ -235,6 +235,17 @@ function renderHub() {
   if (f.token_jian) notes.push('鞋裡有「薦」。');
   if (f.box_clue) notes.push('箱出庫時比入庫輕。');
   if (f.won_zhao) notes.push('趙師兄退過。掃地掃勢已入冊。');
+  if (f.xiao_alert) notes.push('小滿：提醒過，鞋仍新。');
+  else if (f.xiao_case) notes.push('小滿：執法堂有案。');
+  else if (f.xie_eye) notes.push('小滿：謝師兄在看。');
+  if (f.player_listed) notes.push(f.player_zheng ? '薦冊正薦有你的名。' : '薦冊備選有你的名。');
+  if (f.he_saved) notes.push('阿禾：你保過。他還在。');
+  else if (f.he_to_cart) notes.push('阿禾：車上。');
+  if (f.page_hide) notes.push('缺箱那頁在你身上。');
+  else if (f.page_to_xie) notes.push('那頁進了謝承淵袖。');
+  else if (f.page_to_chen) notes.push('那頁進了陳肅袖。');
+  else if (f.page_burn) notes.push('那頁成了灰。');
+  if (f.act1_done) notes.push('第一幕止於門檻。門仍虛掩。');
   const learned = state.learned.map((id) => SKILLS[id]?.name).filter(Boolean).join('、');
   return `
     <div class="loc">青衡宗 · 外門</div>

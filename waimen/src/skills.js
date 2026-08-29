@@ -33,6 +33,22 @@ export const SKILLS = {
     power: 16,
     desc: '掃帚橫掃的路數。勢寬，挨打的面也寬。外門的地，掃久了會成招。',
   },
+  slip: {
+    id: 'slip',
+    name: '捲紙',
+    type: 'guard',
+    cost: 3,
+    power: 10,
+    desc: '把廢帖捲進掌紋。紙薄，門規更薄。這一招專為挨不必入冊的打。',
+  },
+  merit: {
+    id: 'merit',
+    name: '肩勒',
+    type: 'damage',
+    cost: 4,
+    power: 14,
+    desc: '下山押箱的勒痕還在肩上。肩一送，把功勞還成拳。勢中等，不耗太多。',
+  },
 };
 
 export const PUNCH = {

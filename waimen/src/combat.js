@@ -66,6 +66,45 @@ export const ENEMIES = {
       { id: 'watch', name: '觀招', type: 'guard', power: 6, text: '錢六雙手一圈，看你還會不會還手。' },
     ],
   },
+  jiang: {
+    id: 'jiang',
+    name: '漿衣的人',
+    hp: 30,
+    atk: 7,
+    def: 3,
+    moves: [
+      { id: 'pestle', name: '木杵', type: 'damage', power: 10, text: '漿衣的人掄起木杵，鹼水濺上你袖。' },
+      { id: 'shove', name: '搡埠', type: 'damage', power: 12, text: '他往河埠濕板上搡你，腳下一滑。' },
+      { id: 'spasm', name: '鎮痙', type: 'special', power: 0, mpDrain: 3, text: '鹼氣衝鼻。他喉間一痙，像要把你的內息一起掐斷。' },
+      { id: 'watch', name: '觀招', type: 'guard', power: 5, text: '他把杵橫在胸前，鹼布當盾。' },
+    ],
+  },
+  enforcer: {
+    id: 'enforcer',
+    name: '執法堂弟子',
+    hp: 40,
+    atk: 9,
+    def: 5,
+    moves: [
+      { id: 'strip', name: '搜袖', type: 'damage', power: 11, text: '他搜你袖口，指節磕腕骨，像核一筆未入冊的過。' },
+      { id: 'seal', name: '按肩', type: 'damage', power: 13, text: '執法堂的人按你的肩，要把你按進薄冊。' },
+      { id: 'party', name: '喝黨', type: 'special', power: 0, mpDrain: 3, text: '「成串！」他一喝，你內息亂了半寸。' },
+      { id: 'watch', name: '觀招', type: 'guard', power: 8, text: '他擋在階前，像一頁不會合的罰冊。' },
+    ],
+  },
+  keeper: {
+    id: 'keeper',
+    name: '把門的內門',
+    hp: 42,
+    atk: 9,
+    def: 6,
+    moves: [
+      { id: 'bar', name: '攔門', type: 'damage', power: 12, text: '他把你往檻外攔。「這門不是給外門開的。」' },
+      { id: 'cuff', name: '袖封', type: 'damage', power: 14, text: '袖口抽在你喉結下，輕，像要把氣按回去。' },
+      { id: 'hush', name: '禁聲', type: 'special', power: 0, mpDrain: 4, text: '「別出聲。出聲，裡頭的氣會斷。」他一喝，你內息亂了。' },
+      { id: 'watch', name: '觀招', type: 'guard', power: 9, text: '他擋在虛掩的縫前，像一扇故意不扣的閂。' },
+    ],
+  },
 };
 
 

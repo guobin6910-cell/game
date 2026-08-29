@@ -41,8 +41,20 @@ export function restoreState(data) {
   let day = data.day || 1;
   if (mission === 'done') {
     const swept = flags.sweep_done || flags.won_wang || flags.lost_wang || flags.yield_wang;
-    if (flags.sidemen_done) {
+    if (flags.act1_done || flags.ajar_done) {
       mission = 'errand';
+    } else if (flags.sleeve_done) {
+      mission = 'ajar';
+    } else if (flags.chain_done) {
+      mission = 'sleeve';
+    } else if (flags.credit_done) {
+      mission = 'chain';
+    } else if (flags.jian_done) {
+      mission = 'credit';
+    } else if (flags.shoes_done) {
+      mission = 'jian';
+    } else if (flags.sidemen_done) {
+      mission = 'shoes';
     } else if (swept) {
       mission = 'sidemen';
       if (day < 3) day = 3;
@@ -51,6 +63,9 @@ export function restoreState(data) {
     } else {
       mission = 'panku';
     }
+  }
+  if (mission === 'errand' && !flags.shoes_done && !flags.act1_done) {
+    mission = 'shoes';
   }
   return {
     version: 2,
@@ -100,6 +115,16 @@ function maybeUnlock(state) {
     learned.push('sweep');
     log.push({ kind: 'sys', text: '領悟功法：掃地掃勢。掃帚橫掃的路數，成了招。' });
     flags.unlock_sweep = 0;
+  }
+  if (flags.unlock_slip && !learned.includes('slip')) {
+    learned.push('slip');
+    log.push({ kind: 'sys', text: '領悟功法：捲紙。廢帖進掌，這一招少挨不必入冊的打。' });
+    flags.unlock_slip = 0;
+  }
+  if (flags.unlock_merit && !learned.includes('merit')) {
+    learned.push('merit');
+    log.push({ kind: 'sys', text: '領悟功法：肩勒。下山押箱的勒痕還在肩上，成了招。' });
+    flags.unlock_merit = 0;
   }
   return { ...state, learned, flags, log: trimLog(log) };
 }
@@ -168,6 +193,12 @@ export function pickChoice(state, index) {
   if (to === '__hub__') return toHub(next, { day: next.day || 1, mission: next.mission || 'panku' });
   if (to === '__hub_day2__') return toHub(next, { day: 2, mission: 'sweep', cultivatedToday: 0 });
   if (to === '__hub_sidemen__') return toHub(next, { day: Math.max(3, (next.day || 1) + 1), mission: 'sidemen', cultivatedToday: 0 });
+  if (to === '__hub_shoes__') return toHub(next, { day: (next.day || 1) + 1, mission: 'shoes', cultivatedToday: 0 });
+  if (to === '__hub_jian__') return toHub(next, { day: (next.day || 1) + 1, mission: 'jian', cultivatedToday: 0 });
+  if (to === '__hub_credit__') return toHub(next, { day: (next.day || 1) + 1, mission: 'credit', cultivatedToday: 0 });
+  if (to === '__hub_chain__') return toHub(next, { day: (next.day || 1) + 1, mission: 'chain', cultivatedToday: 0 });
+  if (to === '__hub_sleeve__') return toHub(next, { day: (next.day || 1) + 1, mission: 'sleeve', cultivatedToday: 0 });
+  if (to === '__hub_ajar__') return toHub(next, { day: (next.day || 1) + 1, mission: 'ajar', cultivatedToday: 0 });
   if (to === '__hub_errand__') return toHub(next, { day: (next.day || 1) + 1, mission: 'errand', cultivatedToday: 0 });
   if (to === '__hub_done__') return toHub(next, { day: (next.day || 1) + 1, mission: nextOpenMission(next), cultivatedToday: 0 });
   return enterScene(next, to);
@@ -239,10 +270,30 @@ export function buyPill(state) {
 
 function nextOpenMission(state) {
   const f = state.flags || {};
-  if (state.mission === 'panku' || !f.day1_done) return 'sweep';
-  if (state.mission === 'sweep' || !f.sweep_done) return 'sidemen';
+  if (!f.day1_done) return 'panku';
+  if (!f.sweep_done && !f.won_wang && !f.lost_wang && !f.yield_wang) return 'sweep';
+  if (!f.sidemen_done) return 'sidemen';
+  if (!f.shoes_done) return 'shoes';
+  if (!f.jian_done) return 'jian';
+  if (!f.credit_done) return 'credit';
+  if (!f.chain_done) return 'chain';
+  if (!f.sleeve_done) return 'sleeve';
+  if (!f.ajar_done) return 'ajar';
   return 'errand';
 }
+
+const MISSION_SCENE = {
+  panku: 'panku',
+  sweep: 'sweep',
+  sidemen: 'sidemen',
+  shoes: 'shoes',
+  jian: 'jian',
+  credit: 'credit',
+  chain: 'chain',
+  sleeve: 'sleeve',
+  ajar: 'ajar',
+  errand: 'errand',
+};
 
 export function startMission(state) {
   let mission = state.mission;
@@ -253,11 +304,10 @@ export function startMission(state) {
   if (!state.loadout.length) {
     return { ...state, notice: '先裝備功法。點名未起，空手出列，先記過。' };
   }
-  if (mission === 'panku') return enterScene(state, 'panku');
-  if (mission === 'sweep') return enterScene(state, 'sweep');
-  if (mission === 'sidemen') return enterScene(state, 'sidemen');
-  if (mission === 'errand') return enterScene(state, 'errand');
-  return enterScene({ ...state, mission: 'errand' }, 'errand');
+  const sceneId = MISSION_SCENE[mission];
+  if (sceneId) return enterScene(state, sceneId);
+  const fallback = nextOpenMission(state);
+  return enterScene({ ...state, mission: fallback }, MISSION_SCENE[fallback] || 'errand');
 }
 
 export function beginBattle(state) {
@@ -332,6 +382,12 @@ export function missionLabel(state) {
   if (state.mission === 'panku') return '盤庫';
   if (state.mission === 'sweep') return '掃外庭';
   if (state.mission === 'sidemen') return '掃側門銀杏';
+  if (state.mission === 'shoes') return '井邊差事';
+  if (state.mission === 'jian') return '秋薦文書';
+  if (state.mission === 'credit') return '下山記功';
+  if (state.mission === 'chain') return '成串';
+  if (state.mission === 'sleeve') return '袖中那頁';
+  if (state.mission === 'ajar') return '虛掩';
   if (state.mission === 'errand') return '外門雜差';
   return '外門雜差';
 }

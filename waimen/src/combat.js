@@ -1,6 +1,45 @@
 import { SKILLS, PILL } from './skills.js';
 
 export const ENEMIES = {
+  masked: {
+    id: 'masked',
+    name: '蒙面人',
+    hp: 20,
+    atk: 5,
+    def: 2,
+    moves: [
+      { id: 'slash', name: '橫刀', type: 'damage', power: 8, text: '蒙面人刀光一橫，像割牲口。' },
+      { id: 'kick', name: '踹桌', type: 'damage', power: 6, text: '他踹翻火裡的桌，火星濺你面門。' },
+      { id: 'hush', name: '禁聲', type: 'special', power: 0, mpDrain: 2, text: '「別喊。」布掩著的嘴只有這一句。' },
+      { id: 'watch', name: '觀招', type: 'guard', power: 4, text: '他側過身，火光裡只剩一隻眼。' },
+    ],
+  },
+  outer: {
+    id: 'outer',
+    name: '外門弟子',
+    hp: 32,
+    atk: 7,
+    def: 4,
+    moves: [
+      { id: 'press', name: '壓肩', type: 'damage', power: 10, text: '他肩一沉，把你往試劍坪的沙裡壓。' },
+      { id: 'fist', name: '直拳', type: 'damage', power: 12, text: '拳走中路，專打站樁站歪的胸口。' },
+      { id: 'mock', name: '喝樁', type: 'special', power: 0, mpDrain: 2, text: '「樁還沒站住就來試劍？」他一喝，你內息亂了。' },
+      { id: 'watch', name: '觀招', type: 'guard', power: 6, text: '他雙手一圈，看你還會不會還手。' },
+    ],
+  },
+  forest: {
+    id: 'forest',
+    name: '林中人',
+    hp: 36,
+    atk: 8,
+    def: 5,
+    moves: [
+      { id: 'vine', name: '枝抽', type: 'damage', power: 11, text: '枯枝當鞭，抽在你腕上。' },
+      { id: 'dust', name: '揚土', type: 'damage', power: 9, text: '他抓一把禁林的土撒向你眼。' },
+      { id: 'ban', name: '禁入', type: 'special', power: 0, mpDrain: 3, text: '「關內不是外門該來的。」他一喝。' },
+      { id: 'watch', name: '觀招', type: 'guard', power: 7, text: '他退進樹影，像一扇不會開的關。' },
+    ],
+  },
   zhao: {
     id: 'zhao',
     name: '趙師兄',

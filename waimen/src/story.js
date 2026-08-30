@@ -27,2085 +27,1266 @@ export function getScene(id, state) {
   return fn(state);
 }
 
+export const CHAPTERS = [
+  { n: 1, id: 'c1', title: '燈節家宴', skipPrep: true },
+  { n: 2, id: 'c2', title: '夜襲滅門', skipPrep: true },
+  { n: 3, id: 'c3', title: '潛力爆發', skipPrep: true },
+  { n: 4, id: 'c4', title: '火中昏厥', skipPrep: true },
+  { n: 5, id: 'c5', title: '雨中被救', skipPrep: true },
+  { n: 6, id: 'c6', title: '青衡觀山門', skipPrep: true },
+  { n: 7, id: 'c7', title: '雜役晨課', skipPrep: false },
+  { n: 8, id: 'c8', title: '站樁切磋', skipPrep: false },
+  { n: 9, id: 'c9', title: '小滿草鞋', skipPrep: false },
+  { n: 10, id: 'c10', title: '觀規點名', skipPrep: false },
+  { n: 11, id: 'c11', title: '夢回滅門', skipPrep: false },
+  { n: 12, id: 'c12', title: '下山雜差', skipPrep: false },
+  { n: 13, id: 'c13', title: '功法冊', skipPrep: false },
+  { n: 14, id: 'c14', title: '藥圃', skipPrep: false },
+  { n: 15, id: 'c15', title: '試劍坪', skipPrep: false },
+  { n: 16, id: 'c16', title: '外門小比', skipPrep: false },
+  { n: 17, id: 'c17', title: '攬功', skipPrep: false },
+  { n: 18, id: 'c18', title: '側門銀杏', skipPrep: false },
+  { n: 19, id: 'c19', title: '後山禁林', skipPrep: false },
+  { n: 20, id: 'c20', title: '關內', skipPrep: false },
+  { n: 21, id: 'c21', title: '記功', skipPrep: false },
+  { n: 22, id: 'c22', title: '秋薦風聲', skipPrep: false },
+  { n: 23, id: 'c23', title: '外門亦是門', skipPrep: false },
+  { n: 24, id: 'c24', title: '山門虛掩', skipPrep: false },
+  { n: 25, id: 'c25', title: '舊物', skipPrep: false },
+  { n: 26, id: 'c26', title: '名冊除名', skipPrep: false },
+  { n: 27, id: 'c27', title: '阿禾', skipPrep: false },
+  { n: 28, id: 'c28', title: '盤庫缺箱', skipPrep: false },
+  { n: 29, id: 'c29', title: '夜探庫房', skipPrep: false },
+  { n: 30, id: 'c30', title: '袖中那頁', skipPrep: false },
+  { n: 31, id: 'c31', title: '小滿秋薦', skipPrep: false },
+  { n: 32, id: 'c32', title: '成串', skipPrep: false },
+  { n: 33, id: 'c33', title: '舊姓', skipPrep: false },
+  { n: 34, id: 'c34', title: '清繳', skipPrep: false },
+  { n: 35, id: 'c35', title: '三方逼近', skipPrep: false },
+  { n: 36, id: 'c36', title: '薦冊', skipPrep: false },
+  { n: 37, id: 'c37', title: '內門虛掩', skipPrep: false },
+  { n: 38, id: 'c38', title: '不像拳腳', skipPrep: false },
+  { n: 39, id: 'c39', title: '青袍', skipPrep: false },
+  { n: 40, id: 'c40', title: '知情', skipPrep: false },
+  { n: 41, id: 'c41', title: '不可逆', skipPrep: false },
+  { n: 42, id: 'c42', title: '仙路試煉', skipPrep: false },
+  { n: 43, id: 'c43', title: '被點', skipPrep: false },
+  { n: 44, id: 'c44', title: '仇恩', skipPrep: false },
+  { n: 45, id: 'c45', title: '冊裡舊名', skipPrep: false },
+  { n: 46, id: 'c46', title: '終局前夜', skipPrep: false },
+  { n: 47, id: 'c47', title: '分叉', skipPrep: false },
+  { n: 48, id: 'c48', title: '尾聲', skipPrep: false },
+];
+
+export function endingTrack(flags) {
+  const f = flags || {};
+  if (f.path_reveal) return 'reveal';
+  if (f.path_climb) return 'climb';
+  if (f.path_flee) return 'flee';
+  const r = f.reveal_lean || 0;
+  const c = f.climb_lean || 0;
+  const e = f.flee_lean || 0;
+  if (r >= c && r >= e) return 'reveal';
+  if (c >= e) return 'climb';
+  return 'flee';
+}
+
+export function hubLoc(state) {
+  const f = state.flags || {};
+  if (!f.ch6_done) return '舊宅之外';
+  if (!f.ch28_done) return '青衡觀 · 外門';
+  return '青衡宗 · 外門';
+}
+
+export function hubProse(state) {
+  const f = state.flags || {};
+  if (!f.ch7_done) {
+    if (!f.ch6_done) {
+      return '燈還亮著的日子很短。你尚未知道青衡觀的饅頭是什麼味道。有些差事不像差事，像命。這幾章可以不備功法。';
+    }
+    return '山門裡有香。有人把饅頭塞到你手裏。外門兩個字，這會兒還像家。';
+  }
+  if (f.ch28_done) {
+    return '雜役院。通鋪潮，土階乾。門規把日子一寸寸削下去，削得合法。黃耆的空架還在。名冊上的空格也在。';
+  }
+  return '外門晨課。饅頭還有餘溫。銀杏葉金黃，有人把掃帚當槍使。內門的鐘還遠，遠得像別人的事。';
+}
+
 const SCENES = {};
 
-SCENES.intro = () => ({
+SCENES.c1 = () => ({
+  loc: '舊宅·燈節',
+  paras: [
+    '燈節。門上貼著舊姓，燈籠把廳柱照成橘色。娘在後院煮湯圓，鍋沿一圈白沫。爹在正廳擦一把不常用的刀，刀背反光，像笑。',
+    '幼弟把糖人舉過頭頂，糖油滴在你袖上。外頭有人放炮，近得像從牆根炸。爹把刀收回鞘，說：「今夜別出後門。」娘在院裡喊你的名字，喊得像喊一碗湯。',
+    '你還小。家還在。你不知道火會從哪扇門進來。你只知道今夜有三條路可走。',
+  ],
+  choices: [
+    { text: '跟娘去後院', setFlags: { c1: 'mom', flee_lean: '+1', mom_follow: 1 }, to: 'c1_out' },
+    { text: '跟爹看那把刀', setFlags: { c1: 'dad', reveal_lean: '+1', dad_knife: 1 }, to: 'c1_out' },
+    { text: '偷跑出後門', setFlags: { c1: 'sneak', climb_lean: '+1', sneak_out: 1 }, to: 'c1_out' },
+  ],
+});
+SCENES.c1_out = (state) => {
+  const k = state.flags.c1;
+  const paras = k === 'mom'
+    ? ['後院蒸汽把娘的鬢角打濕。她塞你一顆還沒包嚴的湯圓，「燙。吹一吹。」糯米黏在牙上，甜。', '牆外炮仗再響。娘皺眉，卻仍笑。「有娘在。吃完再怕。」你把甜咽下去。這一晚的甜，後來很短。']
+    : k === 'dad'
+      ? ['刀不是新的。鞘裡有一點陳年的油。爹說：「這不是給你玩的。記住鞘上的雲紋——以後看見，別認。」', '你問為什麼。爹不答。只把你的手指從刃上撥開。「燈節。先做人。」刀收回去。雲紋在暗裡像一筆沒寫完的姓。']
+      : ['後門虛掩。你鑽出去。巷裡燈比家裡密，有人賣糖，有人醉。你走了十步，又退回來——不是怕，是冷。', '門軸響時爹已經站在那兒。他沒罵。只把你領回去，掌心燙。「記住路。記住，不是今晚。」'];
+  return { loc: '舊宅·燈節', paras, next: '__hub_done__' };
+};
+
+SCENES.c2 = () => ({
+  loc: '舊宅·夜襲滅門',
+  paras: [
+    '炮仗停了。換成靴。蒙面人進院的時候，湯圓鍋還滾著。火先從廂房起，紙窗一亮，像燈節沒散。',
+    '娘把你按進櫃。幼弟在廳裡哭。爹的刀出鞘，很短。有人喊舊姓，喊得像點名。',
+    '你聽見桌翻。你還能做一件事。一件。',
+  ],
+  choices: [
+    { text: '躲進櫃', setFlags: { c2: 'hide', flee_lean: '+1', hide_cabinet: 1 }, to: 'c2_out' },
+    { text: '衝出去救幼弟', setFlags: { c2: 'bro', reveal_lean: '+1', save_bro: 1 }, to: 'c2_out' },
+    { text: '跟著火衝出院門', setFlags: { c2: 'rush', climb_lean: '+1', rush_out: 1 }, to: 'c2_out' },
+  ],
+});
+SCENES.c2_out = (state) => {
+  const k = state.flags.c2;
+  const paras = k === 'hide'
+    ? ['櫃裡是娘的衣。香。你數息。數到第七息，幼弟的哭斷了。不是睡著。', '有人停在櫃外。布面的呼吸。他沒開櫃。像數過這家該留一顆種子。火從門縫進來，燙你的膝。']
+    : k === 'bro'
+      ? ['你撞開櫃。幼弟在桌下。你抓住他的腕，糖人還黏在他掌心。火舌舔過門檻。', '有人把你肩上一扯。幼弟的手滑脫。你只帶走半截糖人。甜，和血，分不清。']
+      : ['你跑。火把你的影子投在牆上，像一個大人。院門開了一半，外面是雨還沒下的天。', '有人從背後叫舊姓。你沒回頭。腳下是娘的湯圓，踩破了，白。'];
+  return { loc: '舊宅·夜襲滅門', paras, effects: { hp: -6 }, next: '__hub_done__' };
+};
+
+SCENES.c3 = () => ({
+  loc: '舊宅·火中',
+  paras: [
+    '蒙面人抓住你的領。刀還沒落下。你肚子裡有一股熱，不像怕，像有人用指節在你脈上「點」過——你當時不知道這個字。',
+    '熱衝上四肢。櫃裂。火讓路。你聽見自己的聲音，不像孩子。你要把這股熱用在哪。',
+  ],
+  choices: [
+    { text: '護還活著的人', setFlags: { c3: 'people', reveal_lean: '+1' }, to: 'c3_go' },
+    { text: '護家譜', setFlags: { c3: 'book', climb_lean: '+1' }, to: 'c3_go' },
+    { text: '發狂', setFlags: { c3: 'rage', flee_lean: '+1' }, to: 'c3_go' },
+  ],
+});
+SCENES.c3_go = (state) => {
+  const k = state.flags.c3;
+  const line = k === 'people' ? '你擋在人前面。刀光來了。' : k === 'book' ? '你撲向案上那本燙著的譜。刀光來了。' : '你什麼都不護。只出手。刀光來了。';
+  return {
+    loc: '舊宅·火中',
+    paras: [line, '蒙面人比你高一個頭。布後只有一隻眼。這一場不是比武。是活。'],
+    battle: { enemyId: 'masked', onWin: 'c3_win', onLose: 'c3_lose' },
+  };
+};
+SCENES.c3_win = (state) => {
+  const extra = state.flags.c3 === 'people' ? '你身後的人還喘。喘就夠了。' : state.flags.c3 === 'book' ? '家譜邊燒黑了一角。姓還在。' : '你停不下來，直到火把你的拳頭燙醒。';
+  return {
+    loc: '舊宅·火中',
+    paras: ['蒙面人退了。不是敗，是像看見不該在孩子身上的勢。他低聲對身後說了一句你沒聽清的話。', extra, '熱退了。你跪在青磚上。天開始下雨。'],
+    setFlags: { burst_win: 1 },
+    next: '__hub_done__',
+  };
+};
+SCENES.c3_lose = () => ({
+  loc: '舊宅·火中',
+  paras: ['刀沒砍斷你。像故意。蒙面人在你眉心一指，熱被按回去，疼。', '你倒下。火在雨裡嘶。有人把你從磚上拖走，拖得很穩，像搬一件還能用的東西。'],
+  setFlags: { burst_lose: 1 },
+  next: '__hub_done__',
+});
+
+SCENES.c4 = () => ({
+  loc: '舊宅·火中昏厥',
+  paras: [
+    '昏過去前只剩殘影。三樣。你只能抓住一樣。蒙面人的布。一角青袍，袍角沒有灰。還有一張臉——像自家的人，被火照得不像人。',
+    '雨打在你眼皮上。你選你看見的。',
+  ],
+  choices: [
+    { text: '記住蒙面', setFlags: { c4: 'mask', reveal_lean: '+1', saw_mask: 1 }, to: 'c4_out' },
+    { text: '記住青袍', setFlags: { c4: 'robe', climb_lean: '+1', saw_robe: 1 }, to: 'c4_out' },
+    { text: '記住自己人', setFlags: { c4: 'kin', flee_lean: '+1', saw_kin: 1 }, to: 'c4_out' },
+  ],
+});
+SCENES.c4_out = (state) => {
+  const k = state.flags.c4;
+  const line = k === 'mask' ? '布後那隻眼後來會在夢裡眨眼。你把它當仇。' : k === 'robe' ? '青袍無灰。不像來殺人的。像來裁。裁什麼，你當時不會說。' : '那張臉讓你往後怕熟人。怕比蒙面更難。';
+  return { loc: '舊宅·火中昏厥', paras: [line, '世界黑下去。刀、湯圓、舊姓，都摺進黑暗裡。你沒死。死了就不必記。'], next: '__hub_done__' };
+};
+
+SCENES.c5 = () => ({
+  loc: '山道·雨中',
+  paras: [
+    '雨。泥。有人把你從溝裡撈起。道袍濕了，仍暖。他沒問你疼不疼，先把熱湯抵到你唇邊。「喝。」聲音不疾。你後來才知這是青衡的人。當時他只是雨裡一個人。',
+    '他問：「你叫什麼。」家沒了。名還在不在，是你的。',
+  ],
+  choices: [
+    { text: '報家名', setFlags: { c5: 'name', climb_lean: '+1', gave_name: 1 }, to: 'c5_out' },
+    { text: '不說', setFlags: { c5: 'hush', reveal_lean: '+1', hid_name: 1 }, to: 'c5_out' },
+    { text: '裝忘', setFlags: { c5: 'forget', flee_lean: '+1', fake_forget: 1 }, to: 'c5_out' },
+  ],
+});
+SCENES.c5_out = (state) => {
+  const k = state.flags.c5;
+  const paras = k === 'name'
+    ? ['你把舊姓說出來。他點頭，像把兩個字收進袖裡，不是寫，是藏。「記住就好。觀裡不必常說。」', '湯是苦的。苦完有甜。他背你走。山道的石階一級級把火遠掉。']
+    : k === 'hush'
+      ? ['你搖頭。他也不逼。「不說也活。說了，有人會來對冊。」他像隨口。你記住「對冊」。', '湯是苦的。他背你走。雨停的時候，遠遠有一扇山門。']
+      : ['你說忘了。他看你一眼，很淺。「忘也是一種活法。」他把一件乾的短打披上你肩。', '你沒忘。你只是把忘當成盾。山門在雨幕後，像溫的。'];
+  return { loc: '山道·雨中', paras, effects: { hp: 10 }, next: '__hub_done__' };
+};
+
+SCENES.c6 = () => ({
+  loc: '青衡觀山門',
+  paras: [
+    '青衡觀。不是你聽過的那種殺氣。山門漆著淡青，香從裡頭溢出來，混著饅頭的麥味。有人掃地，掃得慢，像掃給神仙看。',
+    '值事的道人笑著接你，說「外門有通鋪，先睡，再學站樁。」仇還在胸口，觀卻暖。暖得你差點信。山門檻一寸高。跨不跨，怎麼跨，是你的。',
+  ],
+  choices: [
+    { text: '拜觀', setFlags: { c6: 'bow', climb_lean: '+1' }, to: 'c6_out' },
+    { text: '先問仇', setFlags: { c6: 'hate', reveal_lean: '+1' }, to: 'c6_out' },
+    { text: '沉默跨入', setFlags: { c6: 'silent', flee_lean: '+1' }, to: 'c6_out' },
+  ],
+});
+SCENES.c6_out = (state) => {
+  const k = state.flags.c6;
+  const line = k === 'bow' ? '你跪了。額抵青石。值事扶你，「外門不講這個。起來吃飯。」可他記下了你跪。' : k === 'hate' ? '「誰殺我家。」你問。值事仍笑：「觀裡先養人。仇，門規不收。」他沒否認有仇。' : '你不拜不問。跨過檻。香灌進鼻。有人在裡頭喊「新來的有饅頭」。';
+  return { loc: '青衡觀山門', paras: [line, '從此你有一個新的住處。匾上寫青衡觀。觀字溫。你還不知道它後來會被叫成宗。'], next: '__hub_done__' };
+};
+
+SCENES.c7 = () => ({
   loc: '外門通鋪',
   paras: [
     '寅時鼓響。通鋪裡有人把你被子掀了一角。阿禾的臉倒掛在床沿，缺了一點睡，多了一點笑。',
-    '「新來的，起來。饅頭還熱。熱過這一陣，就輪到趙師兄喊站樁。」他把半個饅頭塞到你手裏，自己咬另一半，含糊地說，「青衡宗外門第一課：先吃飽，再挨訓。」',
-    '窗外銀杏在亮。有人在院裡把掃帚當槍使，笑成一團。內門的鐘還遠，遠得像別人的事。阿禾踢了踢你的床板。「午後才盤庫。現在，活著比較要緊。」',
+    '「新來的，起來。饅頭還熱。熱過這一陣，就輪到趙師兄喊站樁。」他把半個饅頭塞到你手裏，自己咬另一半，含糊地說，「青衡觀外門第一課：先吃飽，再挨訓。」',
+    '窗外銀杏在亮。有人在院裡把掃帚當槍使，笑成一團。內門的鐘還遠。阿禾踢了踢你的床板。「先活著。活著比較要緊。」',
   ],
+  setFlags: { met_ahe: 1 },
   choices: [
-    { text: '把饅頭吃完（再去站樁）', setFlags: { breakfast: 1, he_bond: 1 }, to: 'intro_eat' },
-    { text: '拉阿禾去晨課', setFlags: { keen: 1, he_confides: 1 }, to: 'intro_drill' },
-    { text: '再躺一刻', setFlags: { lazy: 1, safe: '+1' }, to: 'intro_lie' },
+    { text: '把饅頭吃完（再去站樁）', setFlags: { c7: 'eat', breakfast: 1, he_bond: 1, climb_lean: '+1' }, to: 'c7_out' },
+    { text: '拉阿禾去晨課', setFlags: { c7: 'drill', keen: 1, he_bond: 1, reveal_lean: '+1' }, to: 'c7_out' },
+    { text: '再躺一刻', setFlags: { c7: 'lie', lazy: 1, flee_lean: '+1' }, to: 'c7_out' },
   ],
 });
-
-SCENES.intro_eat = () => ({
-  loc: '外門灶前',
-  paras: [
-    '饅頭是麥麩的，甜在焦邊。阿禾又給你撕了塊鹹菜，「別跟內門比。內門吃白麵，我們吃得香。」',
-    '灶口有人起鬨，叫你這個新來的露兩手。阿禾替你擋：「人家饅頭還沒嚥下去，你們先把樁站住。」他朝你眨眼，「站樁的時候別笑。笑了，趙師兄以為你在笑他。」',
-    '你們把最後一口吃完。日頭才爬到屋脊。外門這會兒，像真能把人養熟。',
-  ],
-  effects: { hp: 4 },
-  next: 'yard',
-});
-
-SCENES.intro_drill = () => ({
-  loc: '外庭',
-  paras: [
-    '你拉他去外庭。阿禾哎了一聲，饅頭還在腮幫。「這麼勤，像要搶內門的名額。」話是抱怨，腳已經跟上。',
-    '晨課的青衡樁並不玄。肩沉、膝微屈，像搬箱前那一下。有人站歪了，被旁邊的人用掃帚柄輕輕敲正，一院子都笑。',
-    '阿禾壓低聲音，這次不像密謀，像分享秘訣：「氣沉下去，趙師兄就少罵一句。午後盤庫，站得住的人，冊上好看一點。」他頓了頓，「好看一點就夠了。別想太多。」',
-  ],
-  effects: { mp: 3 },
-  next: 'yard',
-});
-
-SCENES.intro_lie = () => ({
-  loc: '外門通鋪',
-  paras: [
-    '你把被角搶回去。阿禾蹲在床邊，數了三息，把饅頭放在你枕邊。「行。懶也是功夫。別噎著。」',
-    '通鋪那頭有人唱歌，走調，被拍枕頭。日光照到你眼皮上。你再起來時，饅頭還溫，阿禾已經在院裡喊你的名字，喊得理直氣壯，像喊自己的早飯。',
-    '你咬了一口趕出去。外門的早晨不等人，可它也不趕著把人嚇死。',
-  ],
-  effects: { hp: 6 },
-  next: 'yard',
-});
-
-SCENES.intro_ask = SCENES.intro_eat;
-SCENES.intro_blind = SCENES.intro_lie;
-SCENES.intro_hush = SCENES.intro_drill;
-
-SCENES.yard = (state) => {
-  const extra = [];
-  if (state.flags.breakfast) extra.push('鹹菜還在牙縫裡。阿禾說這叫「外門的福氣」。');
-  else if (state.flags.keen) extra.push('樁勁還在腿上。阿禾朝你比了個「午後見」。');
-  else extra.push('枕邊饅頭的焦邊還香。阿禾在階上晃腿等你。');
-  return {
-    loc: '外庭',
-    paras: [
-      '外庭掃過一遍，葉還是那些葉，人倒比葉熱鬧。有人用掃帚對槍，有人偷懶坐在銀杏根上曬太陽。匾還掛著，漆也還剝著，可這會兒沒人在意。',
-      '值事在階上喊：「午後盤庫。陳執法要來。」喊完自己先打了個哈欠。像例行。像天氣。',
-      '阿禾把掃帚扔給你，又立刻搶回去。「你先回雜役院。裝備功法，帶包散。盤庫不是掃地——空手出列，他真會記過。記過不可怕，怕的是饅頭被扣。」',
-      ...extra,
-    ],
-    choices: [
-      { text: '回外門（準備、修煉，再去盤庫）', to: '__hub__' },
-    ],
-  };
+SCENES.c7_out = (state) => {
+  const k = state.flags.c7;
+  if (k === 'eat') {
+    return { loc: '外門灶前·阿禾', paras: ['饅頭是麥麩的，甜在焦邊。阿禾又給你撕了塊鹹菜，「別跟內門比。內門吃白麵，我們吃得香。」', '灶口有人起鬨。阿禾替你擋：「人家饅頭還沒嚥下去。」他朝你眨眼，「站樁別笑。笑了，趙師兄以為你在笑他。」外門這會兒，像真能把人養熟。'], effects: { hp: 4 }, next: '__hub_done__' };
+  }
+  if (k === 'drill') {
+    return { loc: '外庭·阿禾', paras: ['你拉他去外庭。阿禾哎了一聲，饅頭還在腮幫。話是抱怨，腳已經跟上。', '青衡樁並不玄。肩沉、膝微屈。有人站歪了，被掃帚柄輕輕敲正，一院子都笑。阿禾低聲：「氣沉下去，趙師兄就少罵一句。少罵一句就夠了。」'], effects: { mp: 3 }, next: '__hub_done__' };
+  }
+  return { loc: '外門通鋪·阿禾', paras: ['你把被角搶回去。阿禾蹲在床邊，把饅頭放在你枕邊。「行。懶也是功夫。別噎著。」', '通鋪那頭有人唱歌，走調，被拍枕頭。你再起來時，饅頭還溫，阿禾在院裡喊你的名字，喊得理直氣壯。外門的早晨不等人，可它也不趕著把人嚇死。'], effects: { hp: 6 }, next: '__hub_done__' };
 };
 
-SCENES.panku = () => ({
+SCENES.c8 = () => ({
+  loc: '外庭',
+  paras: [
+    '趙師兄在外庭喊站樁。兩年了還在煉體，臉曬得黑，專揀新來的「試手」。不是虐。是外門的見面禮。',
+    '「陳執法還沒來點你，我先點。」他擋在夾道最窄的地方，袖口沾著掃階的灰，「當差的勁，我看看夠不夠掃地。」列裡的人繞開。沒人勸。勸，也是黨。',
+  ],
+  choices: [
+    { text: '認真對', setFlags: { c8: 'hard', reveal_lean: '+1' }, to: 'c8_go' },
+    { text: '留力', setFlags: { c8: 'hold', climb_lean: '+1' }, to: 'c8_go' },
+    { text: '先觀再打', setFlags: { c8: 'watch', flee_lean: '+1' }, to: 'c8_go' },
+  ],
+});
+SCENES.c8_go = () => ({
+  loc: '外庭',
+  paras: ['趙師兄已經抬手。試手，不是虐。你若有功法在腰，這會兒用得上；沒有，就拙拳。'],
+  battle: { enemyId: 'zhao', onWin: 'c8_win', onLose: 'c8_lose' },
+});
+SCENES.c8_win = (state) => {
+  const extra = state.flags.c8 === 'hold' ? '你沒打滿。他卻當你打滿了。外門的眼，只看誰退。' : state.flags.c8 === 'watch' ? '你先看清他掃踝，再還。阿禾在廊柱後吹了一聲口哨。' : '你那一下不是拳。是掃地時手腕一翻的路數。';
+  return { loc: '外庭', paras: ['趙師兄退了半步，嘴角裂開。他沒倒。外門的人很少倒給同門看——倒了要填冊。', extra, '「雜役也有爪子。」他啐了口血沫，讓開夾道。名聲不入冊，入嘴。'], setFlags: { won_zhao: 1, fame: '+1', unlock_sweep: 1 }, next: '__hub_done__' };
+};
+SCENES.c8_lose = (state) => {
+  const help = state.flags.he_bond ? '阿禾從廊柱後出來，把你從青石上拽起來。「別躺著。躺著的，當逃。」他沒問你疼不疼。外門不問這個。' : '沒有人拉你。你自己撐起來。膝上的灰，像罰站沒罰完。';
+  return { loc: '外庭', paras: ['趙師兄在你肩上拍了拍，像拍一袋米。「記住。先低頭。」他走了。', help], setFlags: { lost_zhao: 1 }, next: '__hub_done__' };
+};
+
+SCENES.c9 = () => ({
+  loc: '井邊·小滿',
+  paras: [
+    '灶房的小滿蹲在井邊洗筐。他新了一雙草鞋，新得很假，繩還白。外門的鞋不該這麼白。',
+    '阿禾經過時看了一眼，沒停。像看過這種白。劉三從前也白過一陣——你後來才把這兩個白疊在一起。這會兒你只看見一個孩子，一雙鞋。',
+  ],
+  setFlags: { met_xiaoman: 1 },
+  choices: [
+    { text: '提醒小滿', setFlags: { c9: 'warn', xiao_alert: 1, reveal_lean: '+1' }, to: 'c9_out' },
+    { text: '裝沒看見', setFlags: { c9: 'blind', ignore_shoes: 1, flee_lean: '+1' }, to: 'c9_out' },
+    { text: '告訴值事', setFlags: { c9: 'report', xiao_case: 1, climb_lean: '+1' }, to: 'c9_out' },
+  ],
+});
+SCENES.c9_out = (state) => {
+  const k = state.flags.c9;
+  const paras = k === 'warn'
+    ? ['你蹲下去，只說：「鞋太新。」小滿眨眼，把腳往筐後藏。「灶房發的。」他撒謊的樣子很笨。', '「別穿去點名。」你說。他嗯了一聲。鞋仍新。提醒過，就不算沒看見。']
+    : k === 'blind'
+      ? ['你打水，沒看他的腳。小滿卻把筐洗得更響，像求你看，又求你別看。', '阿禾後來問你看見沒。你說沒有。他「哦」了一聲，把沒有兩個字還給你。']
+      : ['值事聽完，記在袖冊邊上，不是正冊。「小滿，灶房。鞋。」他打了個哈欠，「我問問是誰發的。」', '問，就是把孩子寫進別人的眼裡。小滿午後洗筐，沒再穿那雙。赤腳。石冷。'];
+  return { loc: '井邊·小滿', paras, next: '__hub_done__' };
+};
+
+SCENES.c10 = () => ({
+  loc: '值事房·陳肅',
+  paras: [
+    '陳肅第一次來外門點名。不是執法堂的殺氣，是觀規。他打開薄冊，硃筆未點，聲音不疾不徐：「應到者出列。」',
+    '他叫的是職，偶爾是名。叫到你時，筆尖在紙上停了一息。像對過什麼。又像沒有。阿禾在你身側。冊在案上。',
+  ],
+  setFlags: { met_chen: 1 },
+  choices: [
+    { text: '應得很響', setFlags: { c10: 'loud', climb_lean: '+1' }, to: 'c10_out' },
+    { text: '跟阿禾對眼', setFlags: { c10: 'eye', he_bond: 1, reveal_lean: '+1' }, to: 'c10_out' },
+    { text: '偷看冊', setFlags: { c10: 'peek', unlock_slip: 1, reveal_lean: '+1' }, to: 'c10_out' },
+  ],
+});
+SCENES.c10_out = (state) => {
+  const k = state.flags.c10;
+  const paras = k === 'loud'
+    ? ['你應得很響。列裡有人笑。陳肅「嗯」了一聲，筆落下，像給聽話的人蓋印。', '「外門亦要應。應，才在。」他淡淡的。在，是獎。也是被看見。']
+    : k === 'eye'
+      ? ['你沒先看冊。你看阿禾。阿禾嚇了一跳，又把眼還給你，短，像暗號。', '陳肅：「東張西望者，心不在冊。」硃筆在你名下點了一點，極輕。點過，就不算無。阿禾後來把饅頭多分你一口。']
+      : ['冊邊有一行淡墨，不是今日的名。你只看清一個「除」的偏旁，和一個不像功法的字。', '陳肅抬眼。你已經低頭。袖裡卻像捲進了一張廢帖——紙薄，門規更薄。你後來把這路數練成招。'];
+  return { loc: '值事房·陳肅', paras, next: '__hub_done__' };
+};
+
+SCENES.c11 = () => ({
+  loc: '外門通鋪·夢回滅門',
+  paras: [
+    '夜。通鋪潮。你夢見火、湯圓、那隻布後的眼。醒來時牙關是緊的。窗外銀杏葉落，像細的炮仗。',
+    '阿禾在那頭翻身，含糊問：「又咬牙？」他沒逼你。外門的人各有咬牙的夜。這場夢你要不要變成話。',
+  ],
+  choices: [
+    { text: '告訴阿禾', setFlags: { c11: 'tell', he_bond: 1, he_knows_fire: 1, reveal_lean: '+1' }, to: 'c11_out' },
+    { text: '寫進功法冊夾層', setFlags: { c11: 'write', fire_note: 1, climb_lean: '+1' }, to: 'c11_out' },
+    { text: '吞下去', setFlags: { c11: 'swallow', flee_lean: '+1' }, to: 'c11_out' },
+  ],
+});
+SCENES.c11_out = (state) => {
+  const k = state.flags.c11;
+  const paras = k === 'tell'
+    ? ['你說了火。說了幼弟。沒說舊姓。阿禾聽完，把枕頭拍扁，「觀裡不收仇。可我收著。收著不是揭，是怕你一個人咬。」', '他塞你半塊冷饃。「明天站樁。夢不能當飯。」你嚼著。夢仍在，可有人知道。']
+    : k === 'write'
+      ? ['功法冊夾層有一頁空白。你寫了三個字：火、布、袍。墨淡。像怕寫太實。', '冊是你的。夾層也是。以後若有人翻你的功法，會先翻到仇。這是把柄，也是骨。']
+      : ['你說做了個吃湯圓的夢。阿禾「哦」了一聲，又睡。', '火你自己嚥。嚥下去的東西會在胃裡長。外門能活到下一頁名冊的人，多半這樣。'];
+  return { loc: '外門通鋪·夢回滅門', paras, next: '__hub_done__' };
+};
+
+SCENES.c12 = () => ({
+  loc: '青陽鎮·下山',
+  paras: [
+    '下山雜差。押的是空筐，換的是醬菜。青陽鎮比觀熱鬧，有人漿衣，有人喊舊年的戲文。',
+    '有個漿衣的人看你第二眼。像看一張燒殘的譜。阿禾在你身後哼歌，走調。差是趕路。路中間有人。',
+  ],
+  choices: [
+    { text: '幫鎮民搬筐', setFlags: { c12: 'help', reveal_lean: '+1', unlock_merit: 1 }, to: 'c12_out' },
+    { text: '趕路', setFlags: { c12: 'rush', climb_lean: '+1', unlock_merit: 1 }, to: 'c12_out' },
+    { text: '打聽舊姓', setFlags: { c12: 'ask', flee_lean: '+1', ask_old: 1 }, to: 'c12_fight' },
+  ],
+});
+SCENES.c12_out = (state) => {
+  const k = state.flags.c12;
+  const paras = k === 'help'
+    ? ['你幫一個跛腿的婦人把醬筐抬過橋。她塞你兩文，又塞一句：「觀裡的孩子心善。善，別用在刀口上。」', '肩上勒痕還在。下山的勁，後來成了招。阿禾說你像要搶內門的名額。你說只是筐。']
+    : ['你趕路。醬菜入筐，名入冊。值事喜歡準時的人。準時是爬的第一級。', '肩上勒痕還在。外門把差事煉成功夫，把功夫煉成聽話。'];
+  return { loc: '青陽鎮·下山', paras, effects: { silver: 2 }, next: '__hub_done__' };
+};
+SCENES.c12_fight = () => ({
+  loc: '青陽鎮·河埠',
+  paras: ['你把舊姓問出口。漿衣的人臉色變了。木杵還在他手裡。「別在鎮裡喊這個。喊，就有人來對。」', '他像要把你的話捶回去。鹼水濺上你袖。'],
+  battle: { enemyId: 'jiang', onWin: 'c12_win', onLose: 'c12_lose' },
+});
+SCENES.c12_win = () => ({
+  loc: '青陽鎮·河埠',
+  paras: ['他坐下，杵橫在膝上。「你家那字，鎮東祠裡還供過。後來牌位撤了。撤的人穿青。」', '你沒再問。問下去，他要填冊。你把這句「穿青」帶走。肩勒成招。'],
+  setFlags: { old_name_clue: 1, unlock_merit: 1 },
+  effects: { silver: 1 },
+  next: '__hub_done__',
+});
+SCENES.c12_lose = () => ({
+  loc: '青陽鎮·河埠',
+  paras: ['他沒往死裡打。只把你搡到濕板上。「當我沒聽見。你也當沒問。」', '鹼氣衝鼻。舊姓仍在你牙關裡。你自己起來。差還要交差。'],
+  setFlags: { unlock_merit: 1 },
+  next: '__hub_done__',
+});
+SCENES.c13 = () => ({
+  loc: '外門·功法冊',
+  paras: [
+    '外門功法冊薄。能練的只有拙的：樁、搬、聽。值事說：「選一個方向。選了，月例好看一點。不選，也沒人逼——只是冊上空白難看。」',
+    '阿禾已選了搬。「我有的是肩。」他敲你的冊，「你別跟我一樣。你那種熱，不像只會搬。」方向會進骨頭。進了就不肯出來。',
+  ],
+  choices: [
+    { text: '煉體', setFlags: { c13: 'body', climb_lean: '+1' }, to: 'c13_out' },
+    { text: '調息', setFlags: { c13: 'breath', flee_lean: '+1' }, to: 'c13_out' },
+    { text: '聽壁', setFlags: { c13: 'listen', unlock_listen: 1, reveal_lean: '+1' }, to: 'c13_out' },
+  ],
+});
+SCENES.c13_out = (state) => {
+  const k = state.flags.c13;
+  if (k === 'body') return { loc: '外門·功法冊', paras: ['你在冊上寫「煉體」。肩沉下去，氣血多一寸。值事點頭：「外門活著，靠這。」', '阿禾拍你後背，「以後搬筐你走前。」永久的。拙的。夠用。'], effects: { maxHp: 3, atk: 1 }, next: '__hub_done__' };
+  if (k === 'breath') return { loc: '外門·功法冊', paras: ['你在冊上寫「調息」。內息收回來，像把火藏進丹田。值事「嗯」了一聲，沒多誇。', '牆那邊有人換氣。你聽得見自己的。逃的人，先要有息可逃。'], effects: { maxMp: 3 }, next: '__hub_done__' };
+  return { loc: '外門·功法冊', paras: ['你在冊上寫「聽壁」。值事看你一眼，很淺。「聽多了，會聽見不該聽見的。」像勸，像招。', '你把耳朵貼過土牆。息長的是巡夜，息短的是怕。這一門後來叫聽壁息。'], effects: { def: 1, maxMp: 1 }, next: '__hub_done__' };
+};
+
+SCENES.c14 = () => ({
+  loc: '藥圃',
+  paras: [
+    '藥圃的黃耆還小，不像後來缺的那箱。小滿蹲在壟間拔草，草鞋舊了些，仍白。',
+    '管圃的外門丟給你三株嫩苗：「自己看。獻上去，記功。自己煉，補氣。給灶房——」他撇嘴，「灶房不入冊。」苗在你掌心。嫩。',
+  ],
+  setFlags: { met_xiaoman: 1 },
+  choices: [
+    { text: '給小滿', setFlags: { c14: 'xiao', xiao_gift: 1, reveal_lean: '+1' }, to: 'c14_out' },
+    { text: '自己煉', setFlags: { c14: 'self', flee_lean: '+1' }, to: 'c14_out' },
+    { text: '獻給值事', setFlags: { c14: 'offer', climb_lean: '+1' }, to: 'c14_out' },
+  ],
+});
+SCENES.c14_out = (state) => {
+  const k = state.flags.c14;
+  if (k === 'xiao') return { loc: '藥圃·小滿', paras: ['小滿把苗藏進筐底。「我熬湯。湯不分內外。」他笑，缺了一顆牙。', '午後灶房多一碗苦湯。阿禾說你傻。傻有時比冊好看。'], effects: { hp: 2 }, next: '__hub_done__' };
+  if (k === 'self') return { loc: '藥圃', paras: ['你按外門的拙法把苗焙了。苦。氣血回了一截。藥是自己的，過也是自己的。', '小滿看了一眼，沒要。他習慣不伸手。'], effects: { hp: 8, mp: 4 }, next: '__hub_done__' };
+  return { loc: '藥圃', paras: ['值事收了苗，在你名下點了一筆功。功很淺。淺也是往上。', '小滿仍在拔草。圃裡的黃耆，後來會缺一箱。這會兒還齊。'], effects: { silver: 3 }, next: '__hub_done__' };
+};
+
+SCENES.c15 = () => ({
+  loc: '試劍坪',
+  paras: [
+    '試劍坪的沙是新的。外門弟子輪著上場，像把人過篩。值事說：「過了，秋薦好看。不過，仍掃地。」',
+    '對你的那人肩比你寬，樁比你穩。他不恨你。他只想把你從沙裡壓出去。',
+  ],
+  choices: [
+    { text: '進攻', setFlags: { c15: 'atk', reveal_lean: '+1' }, to: 'c15_go' },
+    { text: '守樁', setFlags: { c15: 'guard', climb_lean: '+1' }, to: 'c15_go' },
+    { text: '尋隙', setFlags: { c15: 'slip', flee_lean: '+1' }, to: 'c15_go' },
+  ],
+});
+SCENES.c15_go = () => ({ loc: '試劍坪', paras: ['外門弟子已經抬手。沙揚起來。'], battle: { enemyId: 'outer', onWin: 'c15_win', onLose: 'c15_lose' } });
+SCENES.c15_win = () => ({ loc: '試劍坪', paras: ['他坐進沙裡。不是跪。外門不跪給同門。值事遠遠點了一筆。', '阿禾在場邊比了個「還行」。試劍坪把人分成能被看見的，和仍掃地的。你這次被看見了。'], setFlags: { won_outer: 1, fame: '+1' }, next: '__hub_done__' });
+SCENES.c15_lose = () => ({ loc: '試劍坪', paras: ['你坐進沙裡。他伸手拉你，又縮回去——拉，像黨。', '值事沒記過。只沒記功。秋薦的風還遠。遠的東西，會走近。'], setFlags: { lost_outer: 1 }, next: '__hub_done__' });
+
+SCENES.c16 = () => ({
+  loc: '外庭·小比',
+  paras: [
+    '外門小比。不是內門那套。一塊地，兩個人，贏的掃中間，輸的掃邊兒。錢六嘴損，王五帚狠。',
+    '值事懶得排。他說：「自己點。」點了，就是名。',
+  ],
+  choices: [
+    { text: '挑戰錢六', setFlags: { c16: 'qian', climb_lean: '+1' }, to: 'c16_qian' },
+    { text: '挑戰王五', setFlags: { c16: 'wang', reveal_lean: '+1' }, to: 'c16_wang' },
+    { text: '避讓（仍被點名）', setFlags: { c16: 'yield', flee_lean: '+1', yield_wang: 1 }, to: 'c16_wang' },
+  ],
+});
+SCENES.c16_qian = () => ({ loc: '外庭·小比', paras: ['錢六踢翻腳邊的筐，藥包滾進石縫。「掃過試劍坪就學內門的氣了？」'], battle: { enemyId: 'qian', onWin: 'c16_win', onLose: 'c16_lose' } });
+SCENES.c16_wang = () => ({ loc: '外庭·小比', paras: ['王五的掃帚先動。柄打手背的路數，外門人人會。葉灰揚起來。'], battle: { enemyId: 'wang', onWin: 'c16_win', onLose: 'c16_lose' } });
+SCENES.c16_win = () => ({ loc: '外庭·小比', paras: ['對方坐下揉腕。「掃就掃。」葉還是那些葉。你把中間也掃了。', '有人用氣音說：「昨天試劍的，今天也不讓。」名聲不入冊，入嘴。'], setFlags: { won_small: 1, fame: '+1' }, next: '__hub_done__' });
+SCENES.c16_lose = () => ({ loc: '外庭·小比', paras: ['你坐在葉堆裡。對方把中間掃完，邊兒留給你。「記住。」外門的記住，都是同一句。', '值事經過，當沒看見。你自己起來。'], setFlags: { lost_small: 1 }, next: '__hub_done__' });
+
+SCENES.c17 = () => ({
+  loc: '外庭·謝承淵',
+  paras: [
+    '小比的功還沒收，謝承淵來了。青袍無塵。他對值事一揖，聲線溫的：「這場我看過。功記我名下——外門的孩子，記功太滿，秋薦會刺眼。」',
+    '像攬過。像護。值事已經抬筆。阿禾在你身側，耳根紅了。功是你的。名是誰的，你還能爭一次。',
+  ],
+  setFlags: { met_xie: 1 },
+  choices: [
+    { text: '讓', setFlags: { c17: 'yield', xie_hold: 1, climb_lean: '+1' }, to: 'c17_out' },
+    { text: '爭', setFlags: { c17: 'fight', xie_watch: 1, reveal_lean: '+1' }, to: 'c17_out' },
+    { text: '看阿禾', setFlags: { c17: 'he', he_bond: 1, flee_lean: '+1' }, to: 'c17_out' },
+  ],
+});
+SCENES.c17_out = (state) => {
+  const k = state.flags.c17;
+  const paras = k === 'yield'
+    ? ['你沒開口。謝承淵接得極熟。「穩就好。」他說，幾乎像誇獎。功從你名下挪走，過也像被他擋了一擋。', '傘在。也是繩。阿禾後來只說：「讓了就讓了。別讓第二次還當自己聰明。」']
+    : k === 'fight'
+      ? ['「功是我的。」你說。場上有人倒吸氣。謝承淵目光從你臉上擦過，沒有怒，有一點可惜。', '值事愣了，仍把功寫在你名下。謝承淵笑意不散：「也好。認得乾脆的人，內門缺。」乾脆兩個字，日後要還。']
+      : ['你看阿禾。阿禾小聲：「別讓。」又改口：「讓也行。」他什麼都怕，又什麼都站在你旁邊。', '謝承淵看見了這一眼。「同門之間，話少些。」他記住了你們兩個。功仍被他攬走一半。一半，是恩。'];
+  return { loc: '外庭·謝承淵', paras, next: '__hub_done__' };
+};
+
+SCENES.c18 = () => ({
+  loc: '側門銀杏',
+  paras: [
+    '值事點差：側門那兩棵銀杏，葉子多。掃到側門即可。即可兩個字說得輕。側門不是外門該久停的地方。',
+    '有人會看見。謝承淵說過這句。看見是獎賞。能被想起，才有機會從名冊底欄往上挪。葉金黃。門環涼。',
+  ],
+  choices: [
+    { text: '多停一刻', setFlags: { c18: 'stay', xie_eye: 1, climb_lean: '+1' }, to: 'c18_out' },
+    { text: '掃完就走', setFlags: { c18: 'go', flee_lean: '+1' }, to: 'c18_out' },
+    { text: '在根上留暗號', setFlags: { c18: 'sign', sidemen_sign: 1, reveal_lean: '+1' }, to: 'c18_out' },
+  ],
+});
+SCENES.c18_out = (state) => {
+  const k = state.flags.c18;
+  const paras = k === 'stay'
+    ? ['你多停一刻。內門有青袍經過，沒站下。可你知道自己被掃進某隻眼裡。', '葉落在肩上。你沒抖。被看見的人，要像一棵願意被記住的樹。']
+    : k === 'go'
+      ? ['你掃完就走。葉在筐裡。沒有人看見你，也就沒有人把你寫進秋薦的邊。', '阿禾在夾道口等，「走得好。側門停久了，像求。」']
+      : ['你在銀杏根上用枝劃了一道極淺的痕。不是功法。是給自己留的路：這門虛掩過。', '有人會當沒看見。有人會當看見。痕跡這種東西，外門不入冊，入骨。'];
+  return { loc: '側門銀杏', paras, next: '__hub_done__' };
+};
+
+SCENES.c19 = () => ({
+  loc: '後山禁林',
+  paras: [
+    '後山禁林有關。值事說秋習，外門走一遭，見識關。見識兩個字，常死人。',
+    '巡夜的燈在關前晃。林中有人息，不像外門。阿禾拽你袖：「別鑽。鑽了，冊上寫『擅入』。」關就在那兒。',
+  ],
+  choices: [
+    { text: '走巡夜的路', setFlags: { c19: 'patrol', climb_lean: '+1' }, to: 'c19_patrol' },
+    { text: '鑽林', setFlags: { c19: 'forest', reveal_lean: '+1' }, to: 'c19_forest' },
+    { text: '退後（仍遇林中人）', setFlags: { c19: 'back', flee_lean: '+1' }, to: 'c19_forest' },
+  ],
+});
+SCENES.c19_patrol = () => ({ loc: '後山禁林關', paras: ['巡夜把手裡燈籠連罩砸過來。「夜禁！外門走邊兒。」關前沒邊兒。'], battle: { enemyId: 'patrol', onWin: 'c19_win', onLose: 'c19_lose' } });
+SCENES.c19_forest = () => ({ loc: '後山禁林', paras: ['林中人從樹影裡出來。不像匪。像守關的。枯枝當鞭。'], battle: { enemyId: 'forest', onWin: 'c19_win', onLose: 'c19_lose' } });
+SCENES.c19_win = () => ({ loc: '後山禁林關', paras: ['對方退進影裡。關沒開。可你看見關內的燈，比外門亮一寸，亮得不像練功。', '阿禾喘，「別再往裡。裡頭的氣，不像樁。」你把這不像帶走。'], setFlags: { forest_seen: 1 }, next: '__hub_done__' });
+SCENES.c19_lose = () => ({ loc: '後山禁林關', paras: ['你跪在關前的土上。對方沒報。報了，他自己也要解釋為何外門能摸到關。', '阿禾把你拖回。禁林的土還在牙縫裡。關仍關。'], next: '__hub_done__' });
+
+SCENES.c20 = () => ({
+  loc: '禁林關內',
+  paras: [
+    '關內有一間石屋。藥香衝鼻。有個外門同門跪著，腕上勒著繩，繩上有火漆碎渣，紅得發黑。',
+    '架上有黃耆。籤是真的。箱比籤小。有人把裡面換過。你只能做一件。巡夜的息在關外，還有三轉。',
+  ],
+  choices: [
+    { text: '救同門', setFlags: { c20: 'save', saved_inner: 1, reveal_lean: '+1' }, to: 'c20_out' },
+    { text: '搶藥', setFlags: { c20: 'grab', took_herb: 1, climb_lean: '+1' }, to: 'c20_out' },
+    { text: '原路退出', setFlags: { c20: 'back', flee_lean: '+1' }, to: 'c20_out' },
+  ],
+});
+SCENES.c20_out = (state) => {
+  const k = state.flags.c20;
+  if (k === 'save') return { loc: '禁林關內', paras: ['你割繩。同門沒謝，只說：「別報我的名。報了，成串。」他鑽進林。火漆渣掉在你掌心。', '你沒拿藥。拿了一個人。人比藥難入冊。'], setFlags: { box_clue: 1, inner_unlike: 1 }, next: '__hub_done__' };
+  if (k === 'grab') return { loc: '禁林關內', paras: ['你抓了一把黃耆就走。同門的眼睛在暗裡發亮，不是恨，是懂。懂你選了能入口的。', '藥苦。苦完能打。關外的風把藥香冲淡。你沒回頭。'], effects: { hp: 6, mp: 4 }, setFlags: { box_clue: 1, inner_unlike: 1 }, next: '__hub_done__' };
+  return { loc: '禁林關內', paras: ['你原路退出。石屋的香還在袖裡。同門的呼吸還在耳裡。你什麼都沒做，所以什麼都能做。', '阿禾在關外等，「看見就行。看見，不要當自己是英雄。」'], setFlags: { box_clue: 1, inner_unlike: 1 }, next: '__hub_done__' };
+};
+
+SCENES.c21 = () => ({
+  loc: '值事房·記功',
+  paras: [
+    '下山與禁林的差要入冊。功在案上。謝承淵又來了，仍溫：「這筆我擔。外門記滿，秋薦刺眼。」',
+    '陳肅這次也在。硃筆未點。「擔功者擔核。」他看你，看向你腳邊那塊磨凹的磚。功被搶。你怎麼認。',
+  ],
+  setFlags: { met_xie: 1, met_chen: 1 },
+  choices: [
+    { text: '當眾認是自己的', setFlags: { c21: 'admit', admit_self: 1, reveal_lean: '+1' }, to: 'c21_out' },
+    { text: '讓給謝承淵', setFlags: { c21: 'xie', xie_hold: 1, climb_lean: '+1' }, to: 'c21_out' },
+    { text: '把功賣給陳肅', setFlags: { c21: 'chen', sell_chen_merit: 1, climb_lean: '+1' }, to: 'c21_out' },
+  ],
+});
+SCENES.c21_out = (state) => {
+  const k = state.flags.c21;
+  if (k === 'admit') return { loc: '值事房·記功', paras: ['「是我。」值事房裡有人倒吸氣。陳肅筆尖停了一息。謝承淵幾乎同時接口：「別聽這句。箱是我的。」', '陳肅仍記你一筆自認。自認是骨。也是把名字送到刀口。'], effects: { demerit: 1 }, next: '__hub_done__' };
+  if (k === 'xie') return { loc: '值事房·謝承淵', paras: ['你讓了。謝承淵替你把功攬走，又讓人補了你半月月例。「別跟執法堂說是我。」補，是恩，也是欠。', '陳肅把冊合上。合上不是完。是另案。'], effects: { silver: 3 }, next: '__hub_done__' };
+  return { loc: '值事房·陳肅', paras: ['你把話送到陳肅耳邊：功可記執法堂核。陳肅看你，第一次像看一把可用的筆。', '硃筆點在別人的名下。謝承淵的笑淡了一寸。你賣的不是功。是站隊。'], effects: { silver: 6 }, next: '__hub_done__' };
+};
+
+SCENES.c22 = () => ({
+  loc: '外門廊·秋薦',
+  paras: [
+    '秋薦的風先從灶房過來。有人說南邊要人。有人說聯姻。有人把劉三的名字嚼碎了吐在井裡。',
+    '劉三上月還在這條廊外掃地。手背有凍裂的口。後來他有過新草鞋。再後來沒人見。風聲是刀的影子。',
+  ],
+  choices: [
+    { text: '打聽', setFlags: { c22: 'ask', jian_rumour: 1, reveal_lean: '+1' }, to: 'c22_out' },
+    { text: '裝聾', setFlags: { c22: 'deaf', flee_lean: '+1' }, to: 'c22_out' },
+    { text: '問謝承淵', setFlags: { c22: 'xie', met_xie: 1, climb_lean: '+1' }, to: 'c22_out' },
+  ],
+});
+SCENES.c22_out = (state) => {
+  const k = state.flags.c22;
+  const paras = k === 'ask'
+    ? ['管簽的人酒後說漏：「薦不是府裡點的。是門裡薦的。薦的人吃禮。被薦的——有的成親，有的連親事都沒見到，名冊就除了。」', '他立刻摀嘴。你已經聽見。聽見就不能裝成風。']
+    : k === 'deaf'
+      ? ['你當風是風。阿禾看你，沒再講劉三。小滿洗筐洗得更響。', '裝聾的人活得久。久，有時只是把別人的名推遲到自己頭上。']
+      : ['謝承淵在側廊喝茶。「南邊的薦，不是每年都有。今年……快滿。」像安慰。像提醒。像告訴你位子暫時還能掃地。', '他拈盞，並不給你。「外門的職責是別傳。傳，就是黨。」'];
+  return { loc: k === 'xie' ? '側廊·謝承淵' : '外門廊·秋薦', paras, setFlags: { sell_disciple_known: 1 }, next: '__hub_done__' };
+};
+
+SCENES.c23 = () => ({
+  loc: '外庭·衛正言',
+  paras: [
+    '衛正言來外庭講法。青衣，鬚整齊，像門規本身會走路。外門這一列幾乎同時折腰。',
+    '他說：「外門亦是門。門內門外，都是青衡的骨。骨正，則觀正。」聲很正。正得像沒有縫。阿禾在你身後用氣音：「正的，才要小心。」',
+  ],
+  setFlags: { met_wei: 1, wei_seen: 1 },
+  choices: [
+    { text: '信', setFlags: { c23: 'trust', wei_trust: 1, climb_lean: '+1' }, to: 'c23_out' },
+    { text: '疑', setFlags: { c23: 'doubt', wei_doubt: 1, reveal_lean: '+1' }, to: 'c23_out' },
+    { text: '只聽阿禾的', setFlags: { c23: 'he', he_bond: 1, flee_lean: '+1' }, to: 'c23_out' },
+  ],
+});
+SCENES.c23_out = (state) => {
+  const k = state.flags.c23;
+  const paras = k === 'trust'
+    ? ['你把腰折得更低。衛正言經過時看了你一眼，像看一塊可雕的玉。「外門有可教者。」', '可教，是往上。也是被拿去刻字。']
+    : k === 'doubt'
+      ? ['你聽完，沒把腰折盡。他未必看見。你看見他袖口一點舊的火漆色，紅得發黑，像禁林繩上的。', '正的人，袖裡也可能有渣。你沒問。問是下一章的事。']
+      : ['衛正言的話從你耳邊過。你只記住阿禾那句。同門的氣音，有時比長老的正言硬。', '講法散了。他沒往外門這邊看。不看，也是一種看。'];
+  return { loc: '外庭·衛正言', paras, next: '__hub_done__' };
+};
+
+SCENES.c24 = () => ({
+  loc: '山門·夜',
+  paras: [
+    '小成的夜。你煉體的層數在冊上好看了一點。山門那一側的燈先亮。外門這邊晚一盞。',
+    '你去看。門虛掩。不是忘了扣。是故意留一縫。縫裡有香，不像外門的麥香。推，退，還是報。',
+  ],
+  choices: [
+    { text: '推門', setFlags: { c24: 'push', ajar_push: 1, reveal_lean: '+1' }, to: 'c24_out' },
+    { text: '退回', setFlags: { c24: 'back', flee_lean: '+1' }, to: 'c24_out' },
+    { text: '報值事', setFlags: { c24: 'report', climb_lean: '+1' }, to: 'c24_out' },
+  ],
+});
+SCENES.c24_out = (state) => {
+  const k = state.flags.c24;
+  const paras = k === 'push'
+    ? ['你推。縫開一指。裡頭不是匪。是兩個人在對數，數的不是功法，是名。你沒聽全。門軸響，他們停。', '你退。虛掩仍虛掩。你已經比外門多看見一指寬的青衡。']
+    : k === 'back'
+      ? ['你退。門仍虛掩。有些縫不是給你開的。活到小成的人，多半會退。', '通鋪的燈滅了。你躺下。縫在腦子裡，比門寬。']
+      : ['值事聽完，臉白了一下，又笑：「山門夜風。你看錯。」他記下你的報。記，不是信。', '次日山門扣死。扣死的門，比虛掩更像有事。'];
+  return { loc: '山門·夜', paras, next: '__hub_done__' };
+};
+SCENES.c25 = () => ({
+  loc: '庫房·舊物',
+  paras: [
+    '雜役院清理舊物。箱底有半頁燒殘的譜，墨是舊姓的偏旁。旁有一截香，香灰的味，你在滅門夜聞過。',
+    '庫房架上的火漆碎渣，紅得發黑，與這截香同一種苦。阿禾在門口放風。舊物不是垃圾。是證。',
+  ],
+  choices: [
+    { text: '藏入袖', setFlags: { c25: 'hide', token_page: 1, reveal_lean: '+1' }, to: 'c25_out' },
+    { text: '給阿禾看', setFlags: { c25: 'he', he_bond: 1, token_page: 1, reveal_lean: '+1' }, to: 'c25_out' },
+    { text: '丟回架', setFlags: { c25: 'drop', flee_lean: '+1' }, to: 'c25_out' },
+  ],
+});
+SCENES.c25_out = (state) => {
+  const k = state.flags.c25;
+  const paras = k === 'drop'
+    ? ['你把殘頁放回。手卻顫。丟得掉的是紙，丟不掉的是味。', '阿禾說：「丟得好。留著，像自己往冊上寫。」他沒問你為什麼認得這味。']
+    : k === 'he'
+      ? ['阿禾看完，臉白。「這味不是外門祭的。內門側殿才有。你從哪——」他咬住，「別說從哪。說了，成串。」', '他把殘頁塞回你袖。「你收。我當沒看。沒看的人能活。」']
+      : ['殘頁進袖。香灰蹭在腕上。從此你走路都側一點，像袖裡有刃。', '庫房的火漆還在架上。同類。你已經能對。'];
+  return { loc: k === 'he' ? '庫房·阿禾' : '庫房·舊物', paras, setFlags: { inner_unlike: 1 }, next: '__hub_done__' };
+};
+
+SCENES.c26 = () => ({
+  loc: '值事房外廊',
+  paras: [
+    '晚冊。值事報在、不在、病、差。輪到一個空缺，他停了。「劉三。」沒人應。',
+    '事先備好的口氣：「上月薦往南邊聯姻。按例除名。」筆尖在「除」上頓了頓，像這字寫過很多次，每次還是要頓。廊外有靴聲。衛正言從遠廊過去，沒停。',
+  ],
+  setFlags: { met_wei: 1 },
+  choices: [
+    { text: '追問南邊', setFlags: { c26: 'ask', reveal_lean: '+1' }, to: 'c26_out' },
+    { text: '默記空格', setFlags: { c26: 'memo', flee_lean: '+1' }, to: 'c26_out' },
+    { text: '看陳肅的筆', setFlags: { c26: 'pen', met_chen: 1, climb_lean: '+1' }, to: 'c26_out' },
+  ],
+});
+SCENES.c26_out = (state) => {
+  const k = state.flags.c26;
+  const paras = k === 'ask'
+    ? ['「南邊是哪一家。」你問。值事的眼跳了一下。「按例不宣。再問，記過。」', '陳肅在案那頭沒抬頭。可筆停了。停，就是聽見。劉三的空格在你眼裡比冊大。']
+    : k === 'memo'
+      ? ['你把「除」字的頓記進骨頭。不問。問的人先除。', '散了。你經過名冊案。那一格空了，只留下一個墨點。妹妹這兩個字沒地方寫。門規不收家屬。']
+      : ['陳肅的筆在「除」上走得很穩。穩得不像第一回。他抬眼，看你在看筆。', '「外門看筆，也是過。」他沒記。只讓你知道：筆比刀乾淨，也比刀快。'];
+  return { loc: k === 'pen' ? '值事房外廊·陳肅' : '值事房外廊', paras, setFlags: { liu_gone: 1 }, next: '__hub_done__' };
+};
+
+SCENES.c27 = () => ({
+  loc: '夾道·阿禾',
+  paras: [
+    '執法堂的風往阿禾那邊吹。有人說他多嘴。有人說他與缺箱有過旁證。陳肅的冊還沒合，可眼已經點過他。',
+    '阿禾蹲在筍乾小房門口，把饅頭掰開，沒吃。「你要是聰明，這會兒別認我。」他又塞你一半，「你要是還是你，就認。」保，棄，還是投名。',
+  ],
+  setFlags: { met_ahe: 1 },
+  choices: [
+    { text: '保他', setFlags: { c27: 'save', he_saved: 1, he_bond: 1, reveal_lean: '+1' }, to: 'c27_out' },
+    { text: '棄', setFlags: { c27: 'drop', he_grudge: 1, flee_lean: '+1' }, to: 'c27_out' },
+    { text: '把他的名投給陳肅', setFlags: { c27: 'sell', sell_he: 1, he_to_cart: 1, climb_lean: '+1' }, to: 'c27_out' },
+  ],
+});
+SCENES.c27_out = (state) => {
+  const k = state.flags.c27;
+  if (k === 'save') return { loc: '夾道·阿禾', paras: ['你去值事房說：缺箱的話是你逼他說的。陳肅看你，像看一塊自己往刀上送的肉。「膽，或黨。先按膽記。」', '阿禾罰掃階三日。你記過。他還在。還在，就不是車上。'], effects: { demerit: 1 }, next: '__hub_done__' };
+  if (k === 'drop') return { loc: '夾道·阿禾', paras: ['你沒認他。他看懂了。門關上一條縫。「行。聰明。」聰明兩個字咬得很白。', '次日他仍給你留饅頭，只是放在階上，不放進你手。'], next: '__hub_done__' };
+  return { loc: '夾道·陳肅', paras: ['陳肅收下你的投名。硃筆在阿禾名下走。午後有車。車上不講饅頭。', '謝承淵後來對你說：「穩。」穩得你想吐。你往上挪了一寸。寸下是人。'], effects: { silver: 4 }, next: '__hub_done__' };
+};
+
+SCENES.c28 = () => ({
   loc: '外門庫房',
   paras: [
-    '外門庫房。高窗，窄光。木架齊到樑。案上攤開盤冊，硃筆未點。你束好了腰，袖裡若有散，鼓著一小包。列裡有人看你一眼，又立刻釘回自己腳尖。',
-    '陳執法進門的時候，沒人聽見靴聲。是冊子先落在案上，一下，兩下。「外門庫，秋盤。」他打開冊子，聲音不疾不徐，「點名。應到者出列，不應到者除。」',
-    '他叫的是職，不是人。管鑰的、管秤的、管簽的，一個個出去，報數，核印。你站在雜役列裡，連「應到」都不算，只算「在場」。',
-    '點到黃耆。管簽的外門弟子翻了三頁，額上的汗滴進冊縫。「回執法……黃耆，昨日記入一箱。今早……箱在籤上，貨不在架。」',
-    '空氣緊了一寸。沒有人看你。所有人都把視線釘在架空的那一格。陳肅的筆停著。他仍不抬頭。「缺一箱。記入者誰。」',
-    '管簽的喉嚨發乾。「昨午……謝——謝師兄押入。經手雜役……」他沒敢念你的名字，可冊上那一欄，陳肅已經用指節敲了兩下。',
-    '門軸響。謝承淵進來的時候，先對陳肅一揖，再對滿庫的人點了點頭，像這間屋子本來就該有他的位置。青袍無塵。他站到你身側後半步，不遠不近，剛好把你擋在他袖影裡。',
-    '「陳執法。」他聲線溫的，「那一箱是我經手。功勞記我，錯也算我。外門雜役聽差辦事，不該擔這個名。」像在替你解圍。你甚至來不及拒絕。',
-    '陳肅這才抬眼。看的不是謝承淵的臉，是他腰間那枚內門玉牌。「門規寫過。」硃筆在冊邊點了一點，「擔功者擔核。擔錯者，亦擔核。內門可記功，外門經手，仍要核。」',
-    '他終於看向你。準確地說，看向你腳邊那塊磨凹的磚。「你。昨天送箱的，出列。」謝承淵的袖輕輕碰了你的肘，像安撫，又像按住。他對著陳肅，笑意不散：「執法明鑑。箱是我的事。這位{sib}，連封條都沒資格碰。」',
-    '陳肅：「出列。」你出列。滿庫的眼睛這才落到你身上，又很快挪開。看久了，像會沾上缺箱的灰。',
+    '秋盤。外門庫房。高窗，窄光。案上攤開盤冊。陳肅進門的時候，沒人聽見靴聲。是冊子先落在案上。',
+    '點到黃耆。管簽的額上的汗滴進冊縫。「昨日記入一箱。今早……箱在籤上，貨不在架。」陳肅：「缺一箱。記入者誰。」',
+    '門軸響。謝承淵進來，先對陳肅一揖，再把你擋在袖影裡。「那一箱是我經手。功勞記我，錯也算我。」像解圍。陳肅：「擔功者擔核。你。昨天送箱的，出列。」',
+  ],
+  setFlags: { met_chen: 1, met_xie: 1 },
+  choices: [
+    { text: '看向謝承淵，等他說', setFlags: { c28: 'wait', wait_xie: 1, xie_hold: 1, climb_lean: '+1' }, to: 'c28_out' },
+    { text: '「是我。」', setFlags: { c28: 'admit', admit_self: 1, reveal_lean: '+1' }, to: 'c28_out' },
+    { text: '看向阿禾', setFlags: { c28: 'he', look_he: 1, flee_lean: '+1' }, to: 'c28_out' },
+  ],
+});
+SCENES.c28_out = (state) => {
+  const k = state.flags.c28;
+  if (k === 'wait') return { loc: '外門庫房·謝承淵', paras: ['你沒開口。謝承淵接得極熟。「缺，從我查。外門的月例薄，別先往他們身上砍。」', '陳肅把話收進冊裡。「內門可自請核。外門在場經手，仍記一筆。站外庭。扣半月月例。」硃筆落下。他的「擔」，聽著像傘，看著像繩。'], effects: { silver: -6, hp: -2 }, setFlags: { box_clue: 1 }, next: '__hub_done__' };
+  if (k === 'admit') return { loc: '外門庫房', paras: ['「是我。」庫房裡有人倒吸氣。謝承淵接口：「別聽這句。箱是我的。」陳肅：「自認經手。記過。扣一月月例。謝承淵——知情。」', '知情兩個字落在他身上，輕得像拂袖。阿禾眼底閃過一下，不是感激，是「你瘋了」。'], effects: { silver: -12, demerit: 1, hp: -2 }, setFlags: { box_clue: 1 }, next: '__hub_done__' };
+  const he = state.flags.he_saved || state.flags.he_bond;
+  const paras = he
+    ? ['你的視線偏了。阿禾的嘴張了一下。「……箱比黃耆沉。」話出口，他自己先白了。陳肅：「旁證。記。看同門，不看執法。膽，或黨。」', '阿禾罰掃執法堂階。你記過。他沒恨你——至少此刻沒有。他只是發現：可以說話的人，代價是一起被寫進冊。']
+    : ['你的視線偏了。阿禾比你更快低頭。陳肅沒追那一瞥。「東張西望。記過。站外庭。」', '沒有旁證，沒有自認。處罰落在「神色」上——門規裡最軟、也最隨便的一刀。'];
+  return { loc: '外門庫房·阿禾', paras, effects: { silver: -6, demerit: 1, hp: -2 }, setFlags: { box_clue: 1 }, next: '__hub_done__' };
+};
+
+SCENES.c29 = () => ({
+  loc: '庫房夾道·夜探',
+  paras: [
+    '寅時還遠。黃耆的空架在庫房裡。劉三的空格在冊上。你的記過在陳肅袖裡那一頁的邊上。',
+    '罰站的下午，你看見側門的門閂只是虛扣。盤庫的日子，人以為鎖過了，手就鬆。怎麼進。',
   ],
   choices: [
-    { text: '看向謝承淵，等他說', setFlags: { wait_xie: 1, xie_debt: '+1', agency: '-1' }, to: 'panku_wait' },
-    { text: '「是我。」', setFlags: { admit_self: 1, chen_note: '+1', xie_watch: '+1', he_trust: '+1' }, to: 'panku_admit' },
-    { text: '看向阿禾', setFlags: { look_he: 1 }, to: 'panku_look' },
+    { text: '鑽側門', setFlags: { c29: 'side', reveal_lean: '+1' }, to: 'c29_go' },
+    { text: '跟著巡夜的燈', setFlags: { c29: 'lamp', climb_lean: '+1' }, to: 'c29_go' },
+    { text: '退，仍被撞見', setFlags: { c29: 'back', flee_lean: '+1' }, to: 'c29_go' },
   ],
 });
-
-SCENES.panku_wait = (state) => {
-  const extra = [];
-  if (state.flags.he_confides) extra.push('阿禾的肩膀垮下去，像鬆，又像更怕——你把話權交了出去，他上午才把那箱事塞進你耳朵。');
-  else if (state.flags.he_fear) extra.push('阿禾連垮肩都不肯，只把後頸埋低。');
-  return {
-    loc: '外門庫房',
-    paras: [
-      '你沒開口。下巴只偏了半寸。謝承淵接得極熟，彷彿這就是他等的。',
-      '「看見了。」他對陳肅說，語氣仍溫，「這孩子昨天跟我到庫門口，箱子我親手交給管簽。缺，從我查。外門的月例薄，別先往他們身上砍。」',
-      '陳肅「嗯」了一聲。那不是答應，是把話收進冊裡。「內門弟子可自請核。外門在場經手，仍記一筆。站外庭。扣半月月例。完。」',
-      '硃筆落下。你還站著。謝承淵已經側過身，把你讓回列裡，像扶起一隻碗。',
-      ...extra,
-    ],
-    effects: { silver: -6 },
-    next: 'punish',
-  };
-};
-
-SCENES.panku_admit = (state) => {
-  const extra = [];
-  if (state.flags.he_confides) extra.push('阿禾眼底閃過一下，不是感激，是「你瘋了」。可他沒躲你的視線。');
-  else if (state.flags.willful_blind) extra.push('他仍不看你。可喉結動了。');
-  else extra.push('阿禾閉上眼。像聽見你把爬的路當眾踩裂了一角。');
-  return {
-    loc: '外門庫房',
-    paras: [
-      '「是我。」你說。庫房裡有人倒吸氣，短促，隨即被自己咬住。陳肅的筆尖在紙上停了一息。像沒料到外門還會認。',
-      '謝承淵幾乎同時接口，溫潤不減，只是快了一點：「陳執法，別聽這句。外門不懂分寸，以為認了能少挨。箱是我的，認也該是我認。」',
-      '他說「不懂分寸」的時候，目光從你臉上擦過，沒有怒，有一點可惜。像看一塊自己還沒擦乾淨的玉。',
-      '陳肅：「自認經手。記過一次。扣一月月例。站外庭至暮鼓。謝承淵——內門自請核，另案。先記『知情』。」',
-      '「是。」謝承淵應得很乾淨。知情兩個字落在他身上，輕得像拂袖。',
-      ...extra,
-    ],
-    effects: { silver: -12, demerit: 1 },
-    next: 'punish',
-  };
-};
-
-SCENES.panku_look = (state) => {
-  if (state.flags.he_confides) {
-    return {
-      loc: '外門庫房',
-      paras: [
-        '你的視線偏了。很短。陳肅未必看見。謝承淵看見了。',
-        '阿禾的嘴張了一下。汗順著鬢角進領口。他沒喊你的名字，只對著地面說：「……昨午我在夾道打水。看見謝師兄帶人送箱。箱……比黃耆沉。」',
-        '話出口，他自己先白了。陳肅的目光從冊上抬起，第一次正對一個人。「外門。你叫什麼。」「阿禾。」他報得很快，快得像求饒，「我沒開箱。我什麼都沒開。」',
-        '陳肅點筆：「阿禾，旁證。記。送箱者，仍出列核。」硃筆在你名下頓了頓，「看同門，不看執法。膽，或黨。先按膽記。」',
-        '謝承淵輕聲：「執法，這兩個外門昨天都聽我差遣。旁證也好，經手也好，根子在我。」',
-        '陳肅：「根子另核。枝葉先剪。你，記過，扣半月月例，站外庭。阿禾——多嘴，罰掃執法堂階三日。」',
-        '阿禾應「是」，聲音裂了。他沒恨你——至少此刻沒有。他只是發現：可以說話的人，代價是一起被寫進冊。',
-      ],
-      effects: { silver: -6, demerit: 1 },
-      setFlags: { he_punish_steps: 1, xie_watch: '+2' },
-      next: 'punish',
-    };
-  }
-  if (state.flags.he_fear) {
-    return {
-      loc: '外門庫房',
-      paras: [
-        '你的視線偏了。很短。陳肅未必看見。謝承淵看見了。',
-        '阿禾比你更快低頭。下巴幾乎碰到鎖骨。像早知道你會找他，也早準備好不當人。',
-        '陳肅沒追那一瞥。「外門東張西望。記過，扣半月月例，站外庭。」',
-        '謝承淵在你身後極輕地嘆了口氣，只有你聽得見：「別看旁人。看我。」',
-        '阿禾始終沒抬眼。你知道他記住了。不是記住缺箱，是記住你差一點把他拖出來。',
-      ],
-      effects: { silver: -6, demerit: 1 },
-      setFlags: { he_grudge: 1 },
-      next: 'punish',
-    };
-  }
-  return {
-    loc: '外門庫房',
-    paras: [
-      '你的視線偏了。很短。陳肅未必看見。謝承淵看見了。',
-      '阿禾的臉空著，像真的什麼都沒看見。這一次，他演得比你上午還像。',
-      '陳肅：「東張西望者，心不在冊。記過，扣半月月例，站外庭。」',
-      '沒有旁證，沒有自認，也沒有師兄把話全攬走。處罰落在「神色」上——門規裡最軟、也最隨便的一刀。',
-      '謝承淵微微頷首，像對這結果並不意外。',
-    ],
-    effects: { silver: -6, demerit: 1 },
-    setFlags: { xie_watch: '+1' },
-    next: 'punish',
-  };
-};
-
-SCENES.punish = (state) => {
-  let whisper = '他經過你身邊時，停了半步。什麼都沒多說。青袍沒入廊轉角，藥香還在。';
-  if (state.flags.wait_xie) {
-    whisper = '他經過你身邊時，停了半步。「你很穩。」他說，幾乎像誇獎，「穩就好。今晚不必怕。有事，我擔。」他的「擔」，聽著像傘，看著像繩。';
-  } else if (state.flags.admit_self) {
-    whisper = '「認得乾脆，也好。」他低聲，「下次把乾脆留給該認的人。你月例我讓人補一半——別跟執法堂說是我。」補一半，是恩，也是欠。';
-  } else if (state.flags.look_he && state.flags.he_confides) {
-    whisper = '他看了阿禾一眼，又看你。「同門之間，話少些。陳執法最厭外門成串。」他記住了你們兩個。';
-  } else if (state.flags.look_he && state.flags.he_fear) {
-    whisper = '他什麼都沒說。只把摺扇在掌裡合上。那一下輕響，像替阿禾的低頭收場。';
-  } else if (state.flags.look_he) {
-    whisper = '他看你一眼，很淺。「神色也是罪。下次把眼睛放在自己腳尖上。」他知道你想找人，也知道你沒找成。';
-  }
-  const ahe = state.flags.he_punish_steps
-    ? '阿禾經過你面前時，掃帚撞了一下你的踝骨。不像故意，也不像道歉。'
-    : '';
-  const paras = [
-    '庫房外庭。日頭正中。青石返白。罰站的人影短。處罰不當著內門弟子的面宣。陳肅把冊合上，對謝承淵說了兩句聽不清的話，硃砂在他指間未乾。',
-    '謝承淵向滿坪一拱手，聲量剛好讓外門聽見：「盤庫有缺，是我檢點不周。勞各位受累。」受累兩個字說得漂亮。外門沒人接。有人盯著自己的鞋尖，像鞋尖能少扣一錢月例。',
-    whisper,
-    '陳肅這才對著外門開口。他唸的是條文，不是人名。「缺貨，經手列記過。月例按冊扣。站外庭，至暮鼓。再有差，逐出山門，名冊除名。」',
-    '沒有鞭。沒有血。日頭把青石曬得發燙，罰站的人腳下很快出了一層汗印。你的月例本就薄。這是門規。門規合法。日影從腳尖爬到腳踝。這就是青衡宗的刀：不砍頭，砍日子。',
-  ];
-  if (ahe) paras.push(ahe);
-  paras.push('暮鼓將起。罰站散了。你要回值事房點晚冊，腿還在抖。夾道口卻有人截住你。');
-  return {
-    loc: '庫房外庭',
-    paras,
-    effects: { hp: -4 },
-    setFlags: state.flags.wait_xie ? { xie_cover: 1 } : state.flags.admit_self ? { xie_bait: 1 } : undefined,
-    next: 'zhao_intro',
-  };
-};
-
-SCENES.zhao_intro = () => ({
-  loc: '外庭夾道',
-  paras: [
-    '截你的不是謝承淵。外門的趙——趙師兄，兩年了還在煉體，臉曬得黑，專揀冊上有硃砂的人「試手」。',
-    '「陳執法點過的，也該讓同門點一點。」他擋在夾道最窄的地方，袖口沾著掃階的灰，「別怕。當差的勁，我看看夠不夠掃地。」',
-    '列裡的人繞開。沒人勸。勸，也是黨。你功法在腰，丹藥在袖。他已經抬手。',
-  ],
-  battle: { enemyId: 'zhao', onWin: 'zhao_win', onLose: 'zhao_lose' },
+SCENES.c29_go = () => ({
+  loc: '庫房夾道·夜探',
+  paras: ['你進去。沒有開燈。鼻尖先碰到空架。黃耆那一格，籤還在，墨新。格子裡剩幾根斷的麻繩，繩上有火漆碎渣。', '燈籠的光從另一頭折進來。「誰？庫房夜禁。」巡夜認鎖。鎖是虛的，人是實的。退不出去。'],
+  battle: { enemyId: 'patrol', onWin: 'c29_win', onLose: 'c29_lose' },
 });
+SCENES.c29_win = () => ({ loc: '外門庫房·夜', paras: ['巡夜捂著肋，燈籠滾到架下。他沒喊第二聲——喊了，自己也要解釋為何門是虛扣。', '你摸到箱底一塊木屑，夾著半枚極薄的牙牌。牌上刻一個「薦」字，小得要用指甲去湊。你把牙牌塞進鞋裡。硌著腳心。'], setFlags: { token_jian: 1 }, next: '__hub_done__' });
+SCENES.c29_lose = () => ({ loc: '庫房夾道·夜探', paras: ['巡夜把你拖到值事房門口，又懶得報全。「外門夜鬥，記一筆。」他沒提庫房。提了，虛扣也要上冊。', '你沒摸到那格裡的東西。牙牌不在你鞋裡。你躺回通鋪，氣血只剩一絲。'], setFlags: { warehouse_fail: 1 }, next: '__hub_done__' });
 
-SCENES.zhao_win = (state) => {
-  const extra = [];
-  if (state.flags.he_confides) extra.push('阿禾在廊柱後，沒出聲。他看你的眼神不像怕，像在數你還剩幾口氣。');
-  return {
-    loc: '外庭夾道',
-    paras: [
-      '趙師兄退了半步，嘴角裂開。他沒倒。外門的人很少倒給同門看——倒了要填冊。',
-      '你那一下不是拳。是掃地時手腕一翻的路數。掃帚的弧還在臂骨裡。有人在廊上眼皮跳了一下。',
-      '「雜役也有爪子。」趙師兄啐了口血沫，讓開夾道，「晚冊還要點。你自己去。」',
-      '名聲這種東西，外門不寫在冊上。可繞開你的人，步子慢了半寸。',
-      ...extra,
-    ],
-    setFlags: { fame: '+1', won_zhao: 1, unlock_sweep: 1 },
-    next: 'register',
-  };
-};
-
-SCENES.zhao_lose = (state) => {
-  let help = '沒有人拉你。阿禾的背影已經轉進值事房那向。你自己撐起來。膝上的灰，像罰站沒罰完。';
-  if (state.flags.he_confides) {
-    help = '阿禾從廊柱後出來，把你從青石上拽起來。力道很笨。「別躺著。晚冊還要點。躺著的，當逃。」他沒問你疼不疼。外門不問這個。';
-  } else if (state.flags.willful_blind) {
-    help = '阿禾站得遠。他看了你一眼，還是走過來，抓你胳膊。不看臉。「起來。」像上午那句「你沒看見」的續。';
-  }
-  return {
-    loc: '外庭夾道',
-    paras: [
-      '趙師兄在你肩上拍了拍，像拍一袋米。「記住。冊上有墨的，先低頭。」他走了。靴跟聲比內門的亂。',
-      help,
-      '值事房的人經過，看都不看。打架若無人報，就不算。可你知道：這一場，會有人用氣音傳到執法堂耳裡。記過不必當面宣。',
-    ],
-    setFlags: { lost_zhao: 1 },
-    next: 'register',
-  };
-};
-
-SCENES.register = (state) => {
-  const extra = [];
-  if (state.flags.he_confides) extra.push('你看見阿禾的目光也在那一格上停過。他沒說「箱子」。他現在連「黃耆」都不會再提。');
-  else if (state.flags.he_fear) extra.push('阿禾走在最前面，步伐穩得像要證明自己與任何除名無關。');
-  else extra.push('你沒去看那一格。可你知道它在哪。假裝沒看見，比看見更費力。');
-  return {
-    loc: '值事房外廊',
-    paras: [
-      '外門值事房外廊。暮鼓將起未起。罰站結束的人被趕回點晚冊。晚冊比晨冊快。值事的人只報在、不在、病、差。輪到一個空缺，他停了。',
-      '「劉三。」沒人應。有人在後列吸了下鼻子。值事翻過一頁，用事先備好的口氣念：「上月薦往南邊聯姻。按例除名。」筆尖在「除」上頓了頓，像這字寫過很多次，每次還是要頓。',
-      '你記得劉三。上月還在這條廊外掃地。手背有凍裂的口，說話漏風。他提過家裡還有個妹妹，在鎮裡幫人漿衣，等他月例寄回去。月例寄不了幾回。後來他幫人搬過箱子——那陣子他突然有新草鞋，新得很假。',
-      '沒有人問南邊是哪一家。沒有人問聯姻是娶還是被娶。薦，是上對下的字。除名，是門規的字。兩個字並在一起，人就從冊上蒸發。',
-      '廊外有靴聲。有人低聲：「衛長老。」你們這一列幾乎同時折腰。衛正言從遠廊過去，青衣，鬚整齊，像門規本身會走路。他沒停。也沒往外門這邊看。',
-      '值事的人等靴聲遠了，才把晚冊合上。「散。明日寅時，外庭再掃。」你經過名冊案。劉三的那一格已經空了，只留下一個「除」的墨點。妹妹這兩個字沒地方寫。門規不收家屬。',
-      ...extra,
-      '暮鼓響了。山門那一側的燈先亮。外門這邊晚一盞。',
-    ],
-    next: 'night_intro',
-  };
-};
-
-SCENES.night_intro = (state) => {
-  if (state.flags.he_confides) {
-    return {
-      loc: '外門通鋪',
-      paras: [
-        '外門通鋪。油燈一盞，燈芯結著黑。窗外是庫房那向的黑瓦。通鋪的人睡得早。罰站過的，腿還在抖，可眼先閉——閉了，才不像還在外庭。',
-        '你沒睡。月例被扣的數在腦子裡反覆加，加不出一雙草鞋，加得出劉三的空格。門縫響。阿禾鑽進來，身上還有執法堂階上的灰。',
-        '他蹲在你鋪邊，近得能聞見他牙上的苦。「你上午問那箱。」他說，像在埋怨你問，又像慶幸你問，「我午後聽管簽的人——」他咬住，改口，「聽他們罵自己。黃耆的籤是真的。秤是假的。箱出庫的時候，比入庫輕。」',
-        '「輕的不是藥。」阿禾盯著床板紋，「像把裡面的東西換走了。謝師兄當眾攬過，陳執法把那頁紙袖走。內門的功，外門的過。劉三走的時候，也是先攬過一次事。」',
-        '他掏出半塊冷饃，掰給你——不是慷慨，是怕你明天站不住。「我不是好人。我只是還沒被薦走。」他停。聽過走廊有沒有人。',
-        '「你要揭，今晚不是時候。你要爬，別從我爬上去。你要走——」他笑了一下，很短，「走也要有名帖。外門沒名帖，山門當逃。」',
-        '他站起來，又蹲回去，把最後半句丟在燈影外：「那箱蓋上有內門火漆。火漆不是武功能仿的。我不知道那是什麼。我只知道不像我們練的那些。」',
-        '這是他能給你的全部。他走了。你手裡那半塊饃，涼。燈油還剩一截。你還能做一件事。',
-      ],
-      setFlags: { he_bond: 1, box_clue: 1, inner_unlike: 1 },
-      next: 'night_choice',
-    };
-  }
-  if (state.flags.willful_blind) {
-    return {
-      loc: '外門通鋪',
-      paras: [
-        '外門通鋪。油燈一盞。通鋪的人睡得早。你沒睡。月例被扣的數在腦子裡反覆加，加得出劉三的空格。',
-        '阿禾沒來。你聽過他的脚步在走廊停了一停，又走了。像把上午那句「你沒看見」又確認了一遍。確認完，他就沒必要進來。',
-        '燈結了花。你把燈芯撥正。窗外庫房那向，有人巡夜，燈籠一晃，黃耆的空架在腦子裡也晃。',
-        '三更將盡時，門外極輕地響了一下。不是阿禾。一隻手把一個油紙包從門檻下推進來，沒留名。紙包裡是兩文錢，和一張內門箋，箋上只有一行字，墨極淡：「缺箱之事，已了。好好當差。」',
-        '沒有落款。可「已了」這種口氣，外門寫不出來。謝承淵不必親自來。他派人，就像他攬過——手不髒，情分記在你這邊。錢是真的。了，未必。',
-        '燈油還剩一截。你還能做一件事。',
-      ],
-      effects: { silver: 2 },
-      setFlags: { he_distance: 1, xie_message: 1, safe: '+1' },
-      next: 'night_choice',
-    };
-  }
-  return {
-    loc: '外門通鋪',
-    paras: [
-      '外門通鋪。油燈一盞。阿禾不來。你也沒指望。',
-      '子時未到，內門一個雜役在門外咳嗽。那咳嗽是敲門。你出去。廊下只有這一個人，提著燈，燈罩壓得很低。',
-      '「謝師兄有話。」雜役背書一樣，「今日當眾認也好，不認也好，陳執法的冊已經合了。師兄說：外門想活命，第一件事是別跟錯人說話。第二件事——明日掃葉，掃到內門側門即可。有人會看見。」',
-      '「看見」是獎賞。內門側門不是外門該久停的地方。能被看見，就是能被想起。能被想起，才有機會從名冊的底欄往上挪一格。',
-      '雜役把一封未拆的紙條塞過來。封泥是素的，不是火漆。「師兄說：看不看，隨你。看了，別給第三個人。」他走了。你靠著門框。紙條在掌心發潮。',
-      '你拆開。字只有一句。「南邊的薦，不是每年都有。今年已滿。」像安慰。像提醒。像告訴你劉三的位子今年不再缺，你暫時還能掃地。',
-      '燈油還剩一截。你還能做一件事。做完，夜就深了。',
-    ],
-    setFlags: { xie_line: 1, he_alien: 1, climb_lean: '+1', south_quota: 1 },
-    next: 'night_choice',
-  };
-};
-
-SCENES.night_choice = () => ({
+SCENES.c30 = () => ({
   loc: '外門通鋪',
   paras: [
-    '寅時還遠。黃耆的空架在庫房裡。劉三的空格在冊上。你的記過在陳肅袖裡那一頁的邊上。明天寅時仍要掃外庭。',
+    '袖中那頁——盤庫時陳肅袖走的抄件，夜裡又從值事案邊落下半張。阿禾撿到，塞給你，手冰。「我不是好人。我只是還沒被薦走。」',
+    '頁上有缺箱的秤碼，有火漆印，有一個不像功法的符。給陳，是刀。給謝，是傘。藏，是自己當刀。',
   ],
   choices: [
-    { text: '夜探庫房', setFlags: { night_warehouse: 1, risk: '+1' }, to: 'warehouse_intro' },
-    { text: '睡', setFlags: { sleep: 1, rest: 1, safe: '+2' }, to: 'night_sleep' },
-    { text: '去找阿禾問清楚', setFlags: { find_he: 1 }, to: 'find_he' },
-    { text: '去謝承淵處請安', setFlags: { xie_greet: 1, climb_lean: '+2', xie_favor: '+1', escape_lean: '-1', reveal_lean: '-1' }, to: 'xie_greet' },
+    { text: '給陳肅', setFlags: { c30: 'chen', page_to_chen: 1, met_chen: 1, climb_lean: '+1' }, to: 'c30_out' },
+    { text: '給謝承淵', setFlags: { c30: 'xie', page_to_xie: 1, met_xie: 1, climb_lean: '+1' }, to: 'c30_out' },
+    { text: '藏起來', setFlags: { c30: 'hide', page_hide: 1, reveal_lean: '+1' }, to: 'c30_out' },
   ],
 });
+SCENES.c30_out = (state) => {
+  const k = state.flags.c30;
+  const paras = k === 'chen'
+    ? ['陳肅收下。硃筆在你名下點了「可核」。可核不是平安。是你被他當成筆。', '阿禾看你的眼神空了一下。「你把火交給執法堂。執法堂是火的家。」']
+    : k === 'xie'
+      ? ['謝承淵看完，把頁收進袖。「我擔。」又是這句。頁進了他袖，你進了他的帳。', '他讓人給你補月例。「好好當差。」當差兩個字，把揭的路蓋上了一層紙。']
+      : ['你把頁貼在功法冊夾層，挨著火、布、袍。燒不燒，以後再說。現在它是你的。', '阿禾鬆了口氣，又更怕。「藏的人，被搜出來，比交上去更像黨。」'];
+  return { loc: k === 'chen' ? '值事房·陳肅' : k === 'xie' ? '側廊·謝承淵' : '外門通鋪', paras, next: '__hub_done__' };
+};
 
-SCENES.warehouse_intro = () => ({
-  loc: '庫房夾道·夜',
+SCENES.c31 = () => ({
+  loc: '灶房·小滿',
   paras: [
-    '你赤足走夾道。巡夜的燈籠在另一頭，還有兩轉的距離。庫房的鎖是外門的鎖，鑰匙在管鑰那邊——你沒有鑰匙。可罰站的下午，你看見陳肅袖走那頁紙之後，側門的門閂只是虛扣。盤庫的日子，人以為鎖過了，手就鬆。',
-    '你進去。沒有開燈。鼻尖先碰到空架。黃耆那一格，籤還在，墨新。格子裡剩幾根斷的麻繩，繩上有火漆碎渣，紅得發黑。',
-    '燈籠的光從另一頭折進來。不是虛的。巡夜外門停在側門，燈罩壓低。「誰？庫房夜禁。」他不認識你的臉。他認鎖。鎖是虛的，人是實的。',
-    '退不出去。夾道太窄。功法在腰。',
+    '小滿的名上了秋薦的邊。不是正薦，是備選。備選兩個字，像新草鞋，白，假。',
+    '他還在洗筐，問你：「我去南邊，是不是有新鞋穿？」他不知道劉三。提醒，告陳，還是裝沒看見。',
   ],
-  battle: { enemyId: 'patrol', onWin: 'warehouse_win', onLose: 'warehouse_lose' },
-});
-
-SCENES.warehouse_win = (state) => {
-  const clue = state.flags.box_clue
-    ? '這與阿禾說的「換走」對得上。藥是皮，薦是骨。'
-    : '你只知道這箱從來不是給外門治風寒的。';
-  return {
-    loc: '外門庫房·夜',
-    paras: [
-      '巡夜捂著肋，燈籠滾到架下。他沒喊第二聲——喊了，值事房的人要來，他自己也要解釋為何門是虛扣。外門的沉默，有時比功法有用。',
-      '你摸到箱底沒被掃走的一塊木屑。木屑裡夾著半枚極薄的牙牌，像名帖，又不是名帖。牌上刻的不是功法名，是一個「薦」字，小得要用指甲去湊。',
-      clue,
-      '你把牙牌塞進鞋裡，退回虛扣的門。沒被看見——至少你以為沒有。回到鋪上時，腿比罰站時更白。牙牌硌著腳心。你沒有揭開任何事。你只是把一塊會割腳的東西，帶進了睡覺的地方。',
-    ],
-    setFlags: { token_jian: 1, reveal_lean: '+1' },
-    next: 'day_end',
-  };
-};
-
-SCENES.warehouse_lose = () => ({
-  loc: '庫房夾道·夜',
-  paras: [
-    '巡夜把你拖到值事房門口，又懶得報全。「外門夜鬥，記一筆。」他沒提庫房。提了，他自己的虛扣也要上冊。',
-    '你沒摸到那格裡的東西。麻繩、火漆、空架，都還在暗裡。牙牌不在你鞋裡。',
-    '他放你回鋪。「缺箱的人夜裡還往庫裡鑽，自己不想活。」記過不必當夜宣。你躺回通鋪，氣血只剩一絲，燈已經滅了。',
-  ],
-  setFlags: { warehouse_fail: 1 },
-  next: 'day_end',
-});
-
-SCENES.night_sleep = (state) => {
-  const extra = [];
-  if (state.flags.xie_message) extra.push('那兩文錢在枕下，像有人替你把夜守著。你沒有因此更安。');
-  if (state.flags.he_bond) extra.push('饃的渣還在牙縫裡。阿禾的「不像我們練的那些」你沒追問。沒追問，問才還在。');
-  if (state.flags.xie_line) extra.push('紙條在鋪板下。你側過身，背對它，像背對一扇還沒開的側門。');
-  return {
-    loc: '外門通鋪',
-    paras: [
-      '你把燈吹了。黑暗裡，劉三的空格、黃耆的空架、陳肅的硃筆，都還在，可你選擇先讓腿停。外門能活到下一頁名冊的人，多半不是最明白的人，是最能把明白推遲到明天的人。',
-      ...extra,
-      '你睡著。不是因為無事。是因為寅時會來。夜深，山門的燈還亮著內門那一排。外門這一排，滅了。',
-    ],
-    effects: { hp: 8 },
-    next: 'day_end',
-  };
-};
-
-SCENES.find_he = (state) => {
-  if (state.flags.he_confides) {
-    return {
-      loc: '筍乾小房',
-      paras: [
-        '阿禾住在通鋪盡頭那間更潮的小房，從前是裝筍乾的。你敲門，用指甲，不聲張。門開一條縫。他先看見是你，才把人讓進去。房裡連燈都不敢點。',
-        '「你還來。」他說，「陳執法的冊合了，不等於他忘。」你要問的，他知道。黃耆、劉三、謝承淵的攬。',
-        '「我能說的，燈邊已經說了。」他靠著牆，「還能說的只有一句：南邊聯姻的名，不是府裡點的。是門裡薦的。薦的人吃禮。被薦的人——有的成親，有的連親事都沒見到，名冊就除了。」',
-        '他看著你。「你要揭，得有比我這張嘴硬的東西。你要爬，謝師兄今天下午已經向你伸手了。你要逃——」他搖頭，「逃的人，名冊上寫的是『叛』，比『除』更乾淨，也更死。」',
-        '他送你到門口，聲音更低：「別再敲。第三次，我就當沒你這個人。」這不是絕交。這是保命的說法。你聽得懂。',
-      ],
-      setFlags: { he_bond: 2, sell_disciple_known: 1, reveal_lean: '+1' },
-      next: 'day_end',
-    };
-  }
-  if (state.flags.willful_blind) {
-    return {
-      loc: '筍乾小房',
-      paras: [
-        '你敲門。縫開了。阿禾的眼睛在暗裡發亮，不是喜。「不是沒看見嗎。」這句像一記掃帚柄。你站在門外，他沒讓你立刻進。',
-        '你仍要問。他沉默很久，才說：「劉三有妹妹。這件事，值事房的人都能想起來，沒人敢寫信去鎮裡。你現在來問我，是想當那個寫信的人？還是想確認自己上午裝得夠像？」',
-        '他把門開了一點，只一點。「箱的事，我上午就該閉嘴。你讓我閉嘴了。謝。」謝字咬得很白。他沒把白天的線索給你。',
-        '他給你的是一扇還願意開的門，和一句：「明天各掃各的。別並肩。」門關上。你站了片刻。短期仍安全。阿禾沒把你當敵人，也沒把你當可以說話的人。',
-      ],
-      setFlags: { he_distance: 1, safe: '+1' },
-      next: 'day_end',
-    };
-  }
-  return {
-    loc: '筍乾小房',
-    paras: [
-      '你敲第一次。沒有聲。第二次。裡頭有人翻身，床板響，隨即死寂。像一具還會呼吸的門規。',
-      '第三次，你聽見他貼著門板，用氣音說：「不是你。你走。」不是否認你是誰。是否認開門這件事本身。你上午讓他少說；他現在用整扇門把「少說」還給你。',
-      '你沒有再敲。再敲，就是把執法堂的耳朵引到這條潮走廊。你退回自己的鋪。夜風從門縫進來，帶著筍乾腐掉的甜。',
-      '阿禾還活著。他只是不當你的人。爬的路今晚清出來了——清在同門這一側。',
-    ],
-    setFlags: { he_door: 0, he_grudge: 1 },
-    next: 'day_end',
-  };
-};
-
-SCENES.xie_greet = (state) => {
-  const lead = state.flags.xie_line
-    ? '白日並無「掃到側門」的口諭，可夜裡那句已經把路指過了。你沿著那句走。'
-    : '內門夜禁嚴，外門擅入是記過。可當眾攬過的師兄，側門處常留一盞燈給「有事要報」的人。你賭的就是這一盞。';
-  return {
-    loc: '內門側廊',
-    paras: [
-      lead,
-      '燈在。一個內門雜役先攔住你，聽你報「謝師兄處請安」，才進去通。謝承淵出來時，已經換了家常的深衣，臉上仍是白日那副溫潤，像從沒進過庫房。',
-      '「這麼晚。」他說，不責怪，「罰站過的人，腿該歇。」你請安。詞是外門教過的那種，低，乾淨。',
-      '他看你，看了一息。「陳執法的刀，砍在冊上。冊上有我，你就能少挨一截。今日的記過，我去說。月例……能討回多少是多少。」',
-      '他沒問你來是求，是謝，還是探。他替你把來意說成求。這很方便。方便的事，日後都要還。',
-      '「黃耆的缺，內門自己核。」他拈起案上的茶盞，並不給你，「外門的職責是別再傳。傳，就是黨。黨，比缺箱重。」',
-      '他走到門邊，替你把夜風擋了一擋。「回去睡。明日側門那兩棵銀杏，葉子多。掃的人，我看得到。」',
-      '你退下。側廊的燈把你的影子送出內門，送到外門的土階上，影子先沒入暗裡。你沒見到任何功法。你只見到一個願意把你的名字從陳肅的筆下輕輕托一托的人。托，是往上。也是離地。',
-    ],
-    effects: { silver: 3 },
-    setFlags: { xie_hold: 1, climb_lean: '+1' },
-    next: 'day_end',
-  };
-};
-
-SCENES.day_end = (state) => {
-  const f = state.flags;
-  const reveal = (f.reveal_lean || 0) + (f.token_jian || 0) + (f.box_clue || 0) + (f.he_bond || 0);
-  const climb = (f.climb_lean || 0) + (f.xie_favor || 0) + (f.xie_line || 0) + (f.xie_greet || 0);
-  const rest = (f.safe || 0) + (f.sleep || 0);
-  let lean = '三條路都還在。今夜只把人送到夜深，不把人送出山門。';
-  if (reveal >= climb && reveal >= 2) {
-    lean = '鞋裡或腦子裡多了一點不該有的東西。揭開的憑據未成章，可空架已經不像空架。往上的傘才撐了一角；山門的「除」與「叛」仍是兩種走法。三條路都還在，這一條略沉。';
-  } else if (climb >= reveal && climb >= 2) {
-    lean = '往上的傘撐了一角。謝師兄的燈還在側門。揭開變難，未鎖死——你還沒發誓，只是把名字往冊的上欄挪過一寸。逃的路變窄。三條路都還在，這一條略亮。';
-  } else if (rest >= 2) {
-    lean = '你把明白推遲到了明天。情報缺口還在。三條路仍開，只是今晚誰也不偏向。外門能活到下一頁名冊的人，多半這樣。';
-  }
-  const bits = [];
-  if (f.token_jian) bits.push('鞋裡有「薦」。');
-  if (f.box_clue) bits.push('箱比入庫輕。');
-  if (f.inner_unlike) bits.push('火漆不像外門練的那些。');
-  if (f.xie_message) bits.push('箋上寫：已了。');
-  if (f.south_quota) bits.push('南邊的薦，今年已滿。');
-  if (f.he_grudge) bits.push('阿禾的門不再為你開。');
-  if (f.won_zhao) bits.push('趙師兄退過一步。');
-  if (f.lost_zhao) bits.push('夾道裡跪過一次。');
-  return {
-    loc: '外門通鋪·夜深',
-    paras: [
-      '夜深。寅時還遠。',
-      '黃耆的空架在庫房裡。劉三的空格在冊上。你的記過在陳肅袖裡那一頁的邊上。' + (bits.length ? bits.join('') : ''),
-      '你仍是青衡宗外門的雜役。門規把日子一寸寸削下去，削得合法。',
-      lean,
-      '第一章的差事到此為止。沒有偽的第二章。外門還在。功法還在腰上。天亮之後，仍要掃，仍可煉，仍要準備下一回差事。',
-    ],
-    setFlags: { day1_done: 1 },
-    choices: [
-      { text: '回外門', to: '__hub_day2__' },
-    ],
-  };
-};
-
-SCENES.sweep = () => ({
-  loc: '外庭',
-  paras: [
-    '寅時。外庭再掃。落葉比昨天多，人比昨天少。劉三的空格沒人填。掃帚在石縫裡發出乾響。',
-    '掃到銀杏那一側時，王五把落葉堆往你這邊撥。「冊上有墨的，掃邊兒。中間是我的。」他在外門一年半，比趙師兄矮一截，嘴更尖。',
-    '同門讓路，是活法。不讓，也是活法。外庭沒有陳執法，可有眼睛。',
-  ],
+  setFlags: { met_xiaoman: 1 },
   choices: [
-    { text: '讓開（各掃各的）', setFlags: { fame: '-1', yield_wang: 1 }, to: 'sweep_yield' },
-    { text: '不讓（動手）', setFlags: { fight_wang: 1 }, to: 'wang_intro' },
+    { text: '提醒小滿別去', setFlags: { c31: 'warn', xiao_alert: 1, reveal_lean: '+1' }, to: 'c31_out' },
+    { text: '告訴陳肅', setFlags: { c31: 'chen', xiao_case: 1, met_chen: 1, climb_lean: '+1' }, to: 'c31_out' },
+    { text: '裝沒看見', setFlags: { c31: 'blind', ignore_xiao: 1, flee_lean: '+1' }, to: 'c31_out' },
   ],
 });
-
-SCENES.sweep_yield = () => ({
-  loc: '外庭',
-  paras: [
-    '你讓了。王五哼了一聲，像贏了月例。落葉在他腳邊堆成小丘，風一吹，又回到你這側。',
-    '外門的地，讓來讓去還是這些葉。你把邊兒掃完。值事的人遠遠看了一眼，沒記。沒記功，也沒記過。',
-    '外庭掃完。值事遠遠看了一眼，沒記功，也沒記過。冊上另有一條：側門那兩棵銀杏，葉子多。',
-  ],
-  setFlags: { sweep_done: 1 },
-  choices: [
-    { text: '回外門', to: '__hub_sidemen__' },
-  ],
-});
-
-SCENES.wang_intro = () => ({
-  loc: '外庭',
-  paras: [
-    '你沒讓。王五的掃帚先動。柄打手背的路數，外門人人會。葉灰揚起來。沒有執法，沒有師兄攬。就是兩個人，一塊地。',
-  ],
-  battle: { enemyId: 'wang', onWin: 'wang_win', onLose: 'wang_lose' },
-});
-
-SCENES.wang_win = () => ({
-  loc: '外庭',
-  paras: [
-    '王五坐下。不是跪。外門不跪給同門——跪是求情，求情另記一筆「無骨」。他只是坐下，揉腕。',
-    '「掃就掃。」他說。葉還是那些葉。你把中間也掃了。有人用氣音說：「昨天挨趙的，今天不挨王。」名聲這種東西，不入冊，入嘴。',
-    '外庭掃完。冊上另有一條：側門那兩棵銀杏，葉子多。',
-  ],
-  setFlags: { fame: '+1', won_wang: 1, sweep_done: 1 },
-  choices: [
-    { text: '回外門', to: '__hub_sidemen__' },
-  ],
-});
-
-SCENES.wang_lose = () => ({
-  loc: '外庭',
-  paras: [
-    '你坐在葉堆裡。王五把中間掃完，邊兒留給你。「記住。」他沒說記住什麼。外門的記住，都是同一句。',
-    '值事的人經過，當沒看見。你自己起來。氣血只剩一絲。冊上另有一條：側門那兩棵銀杏，葉子多。',
-  ],
-  setFlags: { lost_wang: 1, sweep_done: 1 },
-  choices: [
-    { text: '回外門', to: '__hub_sidemen__' },
-  ],
-});
-
-
-SCENES.sidemen = (state) => {
-  const f = state.flags || {};
-  const named = f.xie_greet || f.xie_line || f.xie_hold;
-  const lead = named
-    ? '值事點你的名。不是職，是名。「側門那兩棵銀杏，謝師兄說葉子多。掃到側門即可。有人會看見。」即可兩個字說得輕。側門不是外門該久停的地方。'
-    : '值事沒點你的名。他只對這列說：「落葉拉到夾道盡頭倒。盡頭就是側門牆根。倒完就回。別站。」側門仍會經過。只是沒有人說看得見。';
-  const limp = f.token_jian
-    ? '鞋裡那枚牙牌硌著腳跟。你走得輕，輕得像石上有一顆沒掃走的子。'
-    : '罰站過的腳仍疼。你走得慢，不跛。';
-  return {
-    loc: '外庭至側門',
-    paras: [
-      '寅時。差事冊多了一條：掃側門銀杏。外庭的葉還沒乾，你已經要把筐往夾道盡頭送。',
-      lead,
-      limp,
-      '側門比你想的近。近，是因為外門的地圖從不把它畫清楚。畫清楚，就等於承認有路。兩棵銀杏夾門，葉金，葉落。門關著。門環是獸首，獸口不含環——環在裡頭。',
-    ],
-    setFlags: { sweep_done: 1 },
-    choices: [
-      { text: '掃完即走（別站）', setFlags: { leave_side: 1, safe: '+1' }, to: 'sidemen_leave' },
-      { text: '多停一息（看門）', setFlags: { linger_side: 1, seen_by_inner: 1 }, to: named ? 'sidemen_rope' : 'sidemen_linger' },
-      { text: '給阿禾留暗號', setFlags: { he_signal: 1, reveal_lean: '+1' }, to: 'sidemen_signal' },
-    ],
-  };
+SCENES.c31_out = (state) => {
+  const k = state.flags.c31;
+  const paras = k === 'warn'
+    ? ['你說：「南邊不是新鞋。是除名。」小滿把筐抱緊。他信你一半。一半就夠他夜裡哭。', '次日他的名還在邊上。提醒過，就不算賣他。也不算救成。']
+    : k === 'chen'
+      ? ['陳肅聽完，「灶房備選，按例核。」按例兩個字把孩子變成案。午後小滿被叫去值事房，出來時沒有草鞋，也沒有笑。', '你用規則當刀。刀很快。很快的刀，不認人。']
+      : ['你看井，不看他。小滿把新鞋又穿上，白。阿禾經過，沒停。', '裝沒看見，是外門的功法。練久了，會成自己的眼病。'];
+  return { loc: k === 'chen' ? '灶房·陳肅' : '灶房·小滿', paras, next: '__hub_done__' };
 };
 
-SCENES.sidemen_rope = () => ({
-  loc: '內門側門·銀杏',
-  paras: [
-    '窗紙後有一截青袖。不露臉。可那截袖的淨，你認得。',
-    '「掃。」聲音從窗紙後過來，溫的，「掃完，把筐放門左。別叩。」',
-    '葉進筐。你數自己的呼吸。數到三十，窗紙又動。「看見了。」他說。獎賞就這三個字。',
-    '一截細麻繩從窗縫墜下來，繩頭打了個極小的活結。「以後聽差，以繩為記。有繩，來側門。無繩，別來。繩不是名帖。別戴在明處。」',
-    '繩是獎。也是拴。你把它纏在腕內側，被袖蓋住。門仍關著。你多停的那一息，裡頭靴跟極輕地停過——停的位置，剛好對你。',
-  ],
-  setFlags: { xie_rope: 1, climb_lean: '+1', seen_by_inner: 1 },
-  choices: [
-    { text: '倒筐就走', to: 'sidemen_done' },
-    { text: '再停一息', setFlags: { linger_side: 1 }, to: 'sidemen_inner_intro' },
-  ],
-});
-
-SCENES.sidemen_linger = (state) => {
-  const fire = state.flags.token_jian
-    ? '門檻上有一點被蹭掉的火漆，紅得發黑。鞋裡的「薦」和這一點紅，在你腦子裡疊了一下。'
-    : '門檻上有一點被蹭掉的火漆，紅得發黑，和庫房空架裡的碎渣像一類東西。';
-  return {
-    loc: '內門側門·銀杏',
-    paras: [
-      '窗紙沒動。門關著。可你掃到第二棵銀杏下時，仍覺得有視線。也許是門環那對獸眼。也許不是。',
-      fire,
-      '你把最後一層葉刮得很細。細到葉脈都清晰。這不是勤快。這是站住。',
-      '門裡靴跟極輕地停。沒有問話。沒有開門。隨後門縫一開——出來的不是謝師兄。是內門雜役，燈罩提著，天已亮，燈卻沒熄。',
-    ],
-    setFlags: { fire_lacquer: 1, seen_by_inner: 1 },
-    next: 'sidemen_inner_intro',
-  };
-};
-
-SCENES.sidemen_leave = (state) => {
-  const extra = state.flags.xie_greet || state.flags.xie_line || state.flags.xie_hold
-    ? '你走得乾淨。窗紙後有極輕的一聲，像把紙放下。他看見你走。走得乾淨，有時比停得勤快更讓人記得。'
-    : '側門沒留你。你也沒留它。門檻上那點火漆，你只看了一眼。一眼不夠當憑據。';
-  return {
-    loc: '內門側門·銀杏',
-    paras: [
-      '葉滿即走。筐在牆根輕輕一頓，你已經轉身。門縫那點香被你留在背後，像沒聞見過。',
-      extra,
-      '夾道口，錢六攔著。他沒分到側門，分到的是外庭中間那塊——王五昨天剛讓過的地。「掃過銀杏就學內門的氣了？」他譏。譏完，筐先動。',
-    ],
-    next: 'qian_intro_side',
-  };
-};
-
-SCENES.sidemen_signal = (state) => {
-  const f = state.flags || {};
-  if (f.he_grudge || f.he_door === 0) {
-    return {
-      loc: '內門側門·銀杏',
-      paras: [
-        '你用掃帚柄在葉丘側邊劃開一條極淺的溝，溝裡嵌進三片葉尖朝外庭。從前有人用這法子報巡夜換班。劉三在的時候，也用過。後來沒人用了。',
-        '阿禾從另一列經過。他看見那三片葉。目光停了半息，像看見一把還沒出鞘的禍。他沒停。他把視線從溝上撕開，像撕一張會燒手的紙。',
-        '錢六看見了。不是暗號。是你蹲在側門牆根，像偷。他喊：「這邊有人藏葉！」喊完就上手。',
-      ],
-      setFlags: { he_signal_fail: 1 },
-      next: 'qian_intro_side',
-    };
-  }
-  return {
-    loc: '內門側門·銀杏',
-    paras: [
-      '你用掃帚柄在葉丘側邊劃開一條極淺的溝，溝裡嵌進三片葉尖朝外庭。外門掃葉的人認得：三片朝某個方向，是「那邊有事，別當眾問」。',
-      '阿禾的掃帚聲遠了一寸，又近了一寸。他沒抬頭。他把自己的筐往溝邊一頓，三片葉被他掃進筐底，像從沒存在過。這不是和解。這是他還能做的、最小的一件事。',
-      '內門雜役不知道葉尖的意思。他只知道你蹲得太久。燈罩一晃，人已經到了牆根。',
-    ],
-    setFlags: { he_signal_ok: 1, he_bond: '+1' },
-    next: 'sidemen_inner_intro',
-  };
-};
-
-SCENES.sidemen_inner_intro = () => ({
-  loc: '內門側門',
-  paras: [
-    '「掃完了還站什麼。」內門雜役把燈橫在胸前，「門不是給你們開的。謝師兄說看得見，看得見不是讓你看進去。」',
-    '他袖口一抖。外門的人在側門多停一息，就是他要向裡頭交代的事。交代不了，他就把你搡回去。搡，是差事。',
-  ],
-  battle: { enemyId: 'inner', onWin: 'sidemen_inner_win', onLose: 'sidemen_inner_lose' },
-});
-
-SCENES.sidemen_inner_win = () => ({
-  loc: '內門側門',
-  paras: [
-    '內門雜役退了半步。燈沒滅。他沒喊——喊了，裡頭要問為什麼一個外門能把他搡開。外門的沉默，內門也用。',
-    '「滾。」他說。滾字比記過輕。輕的意思是：這筆他私下記。你倒了筐。葉在牆根堆成一座小黃丘。',
-    '辰時前回外庭。核名的人看你來遲半刻，筆尖點了點，沒加罰。半刻還在「掃銀杏」能解釋的範圍裡。',
-  ],
-  setFlags: { won_inner: 1, fame: '+1', sidemen_done: 1 },
-  choices: [
-    { text: '回外門', to: '__hub_shoes__' },
-  ],
-});
-
-SCENES.sidemen_inner_lose = () => ({
-  loc: '內門側門',
-  paras: [
-    '他按著你的肩，把你搡出夾道。燈罩還熱。「再站，報執法堂。」他沒報。報了，自己也要解釋為何門縫開過。',
-    '你坐在葉堆裡。氣血只剩一絲。筐是空的，差事算完。核名的人看你一身土，當罰站的續，沒另記。',
-  ],
-  setFlags: { lost_inner: 1, sidemen_done: 1 },
-  choices: [
-    { text: '回外門', to: '__hub_shoes__' },
-  ],
-});
-
-SCENES.qian_intro_side = () => ({
-  loc: '夾道口',
-  paras: [
-    '錢六在外門一年零一個月，比王五更會找沒有執法的空當。側門的葉他掃不到，人他掃得到。',
-    '「冊上有墨的，也配過側門？」筐已經撞上來。',
-  ],
-  battle: { enemyId: 'qian', onWin: 'sidemen_qian_win', onLose: 'sidemen_qian_lose' },
-});
-
-SCENES.sidemen_qian_win = () => ({
-  loc: '夾道口',
-  paras: [
-    '錢六坐下。不是跪。他揉腕，把譏咽回去。葉還是那些葉。你把筐送回值事核。空的。空就是完。',
-    '午後沒有新條。側門那兩棵銀杏，你已經見過了。門仍關著。',
-  ],
-  setFlags: { won_qian: 1, fame: '+1', sidemen_done: 1 },
-  choices: [
-    { text: '回外門', to: '__hub_shoes__' },
-  ],
-});
-
-SCENES.sidemen_qian_lose = () => ({
-  loc: '夾道口',
-  paras: [
-    '你坐在石上。錢六把筐踢回你身邊。「記住。」他沒說記住什麼。外門的記住，都是同一句。',
-    '值事的人經過，當沒看見。差事算完。氣血只剩一絲。',
-  ],
-  setFlags: { lost_qian: 1, sidemen_done: 1 },
-  choices: [
-    { text: '回外門', to: '__hub_shoes__' },
-  ],
-});
-
-SCENES.sidemen_done = () => ({
-  loc: '外庭',
-  paras: [
-    '核名案驗了你的筐底。空的。空就是完。值事說：「過。」',
-    '銀杏葉的汁有一點澀。你把手在衣襟上擦乾。午後沒有新條。明日仍有差事。外門的日子，是一條接一條的。',
-  ],
-  setFlags: { sidemen_done: 1 },
-  choices: [
-    { text: '回外門', to: '__hub_shoes__' },
-  ],
-});
-
-SCENES.errand = (state) => {
-  const n = (state.day || 4) % 3;
-  if (n === 1) {
-    return {
-      loc: '值事房廊下',
-      paras: [
-        '差事冊寫：送藥。外門藥房的粗包，送到值事房，再由內門的人來取。你碰不到內門的手，只碰得到廊下的風。',
-        '藥包在袖裡發苦。走到廊下第二根柱，錢六攔著。他沒領到這條差。「你送，我看。」看的不是藥。是你還會不會讓。',
-      ],
-      next: 'errand_qian',
-    };
-  }
-  if (n === 2) {
-    return {
-      loc: '外門夾道·黃昏',
-      paras: [
-        '差事冊寫：替巡。巡夜外門缺一人，值事把名點到你頭上。缺的人昨夜腿軟，加罰去了。你頂他的燈。',
-        '燈罩還熱。夾道裡有人不是巡夜——步子急，像要趕在核名之前把什麼東西換走。你喝了一聲。對方把燈一橫。',
-      ],
-      next: 'errand_patrol',
-    };
-  }
-  return {
-    loc: '外門庫房廊下',
-    paras: [
-      '差事冊寫：搬箱。箱是封好的。火漆新，印卻舊。你不開。開是死。搬，是活。',
-      '搬到轉角，王五又在。他不掃了。他攔路。「這箱沉。沉的分我一半記功。」箱不能分。記功更不能。他的手已經按上來。',
-    ],
-    next: 'errand_wang',
-  };
-};
-
-SCENES.errand_qian = () => ({
-  loc: '值事房廊下',
-  paras: ['錢六不讓路。藥包在袖裡，像一塊會被搶走的月例。'],
-  battle: { enemyId: 'qian', onWin: 'errand_win', onLose: 'errand_lose' },
-});
-
-SCENES.errand_patrol = () => ({
-  loc: '外門夾道·夜',
-  paras: ['巡夜的燈對上另一盞燈。兩盞燈都是外門的。外門打外門，值事房只問燈還在不在。'],
-  battle: { enemyId: 'patrol', onWin: 'errand_win', onLose: 'errand_lose' },
-});
-
-SCENES.errand_wang = () => ({
-  loc: '庫房廊下',
-  paras: ['王五要箱。你要活。箱在兩個人中間，火漆一碰就碎。'],
-  battle: { enemyId: 'wang', onWin: 'errand_win', onLose: 'errand_lose' },
-});
-
-SCENES.errand_win = () => ({
-  loc: '外門',
-  paras: [
-    '差事完了。值事在冊邊點了一點，像點一棵還在的樹。點完，碎銀兩文。兩文不夠贖記過，夠兌半包止血散。',
-    '外門還在。明日仍有雜差。功法還在腰上。你仍是青衡宗外門的雜役。',
-  ],
-  effects: { silver: 2 },
-  setFlags: { errand_done: '+1' },
-  choices: [
-    { text: '回外門', to: '__hub_errand__' },
-  ],
-});
-
-SCENES.errand_lose = () => ({
-  loc: '外門',
-  paras: [
-    '差事算完。完的意思是人還在冊上。值事當沒看見。碎銀沒有。記過有。',
-    '你自己起來。氣血只剩一絲。明日仍要出列。外門的日子，不因你跪過就停。',
-  ],
-  setFlags: { errand_done: '+1' },
-  choices: [
-    { text: '回外門', to: '__hub_errand__' },
-  ],
-});
-
-SCENES.shoes = (state) => {
-  const f = state.flags || {};
-  const extra = [];
-  if (f.token_jian) extra.push('你的腳跟仍硌著牙牌。牌上那個「薦」字和這雙白麻，在晨光裡像一對。');
-  if (f.he_confides || f.he_bond) extra.push('阿禾在井的另一側漱口。漱完，他沒吐水，先看了小滿的鞋，再看你。眼神很短：你也看見了。別當眾說。');
-  else if (f.he_fear || f.he_grudge) extra.push('阿禾經過井臺，步子穩。他看小滿的鞋的時間，比看你長。');
-  return {
-    loc: '外門井臺',
-    paras: [
-      '隔了一夜。側門的銀杏還在落。你的記過還在冊上。值事房卻多了一種聲音：不是掃，是咬耳朵。',
-      '你去井邊打水。桶還沒滿，先看見一雙腳。草鞋。新的。麻繩白，鞋底厚，連鼻梁上的結都還繃著。外門的鞋不該這樣。',
-      '穿這雙鞋的人叫小滿。廚房雜役，從前說話漏風，笑起來缺一顆牙。缺牙還在。鞋先換了。',
-      '「值事房發的。」小滿把腳往水桶後藏，「說是冬前補一雙。」冬前還早。你記得劉三走前也突然有過一雙。新得很假。',
-      ...extra,
-      '「你別看了。」小滿低聲，缺牙漏風，「看久了，像我偷的。」水濺上新麻。小滿慌，用袖去擦鞋。擦的是鞋，不是話。',
-    ],
-    next: 'shoes_rumor',
-  };
-};
-
-SCENES.shoes_rumor = (state) => {
-  const f = state.flags || {};
-  const extra = [];
-  if (f.south_quota) extra.push('你記得謝承淵紙條上那句「今年已滿」。滿了還有秋薦——外門聽到的滿，和內門寫的滿，不是同一個字。');
-  if (f.sell_disciple_known) extra.push('阿禾說過，薦的人吃禮，被薦的人有的連親事都沒見到。禮不會給穿舊袖的人。禮給簽字的人。');
-  if (f.xie_rope) extra.push('腕間的麻繩貼著脈。以繩為記，以鞋為記，是一類東西。標記不是給被標記的人看的。');
-  return {
-    loc: '外門廊下',
-    paras: [
-      '粥還沒喝完，風聲已經比粥稠。「南邊又有帖。」「不是又。是秋薦。」「劉三不是上月才——」「上月是加薦。別問。」',
-      '值事把粥喝得很響，響完才開冊。「有帖到值事房。帖不是給你們看的。門規沒寫外門可以問額。問額，就是想上額。」',
-      '小滿坐在你斜對面。新鞋擱在身前，像一對不該上桌的東西。有人看鞋，有人故意不看。不看的更清楚：這雙鞋已經把小滿從「我們」裡劃出半步。',
-      ...extra,
-      '值事合冊。「散。小滿，飯後去值事房。量鞋的人說尺碼還要核。」廚房雜役被叫去核鞋，比被叫去劈柴更不像差事。',
-    ],
-    next: 'shoes_paper',
-  };
-};
-
-SCENES.shoes_paper = (state) => {
-  const f = state.flags || {};
-  const pair = f.token_jian
-    ? '你幾乎把鞋裡那枚牙牌也抖出來。牌上的「薦」和紙上的「薦」不是同一隻手——牌是刻的，紙是寫的。半個名字看不清。不像小滿，也不像劉三。'
-    : '你仍認得這個字。晚冊上劉三那一格旁邊，值事念過「薦往南邊」。硃砂的薦，現在落到鞋面。半個名字像誰都是，又像誰都不是。記憶比牌軟，陳肅的冊不收軟的東西。';
-  const bone = (f.box_clue || f.inner_unlike) ? '藥是皮，薦是骨。這條紙把骨寫在明處，又撕掉。' : '';
-  return {
-    loc: '值事房山牆外',
-    paras: [
-      '小滿去值事房。你被分去倒字紙——外門的字紙不燒，先倒到山牆外的坑。燒是內門的權。倒是外門的手。',
-      '風比門規快。一條窄紙從簍沿翻出來，貼在你鞋面上。半個名字，被撕斷。完整的是邊上一個字，硃砂，小：薦。',
-      pair,
-      bone,
-      '你把紙捲進掌紋。捲得很緊。緊，是還沒收為憑據，只是不讓風繼續傳。門響。小滿出來。核過的意思寫在臉上：不是合腳，是合冊。值事房裡說：「鞋穿上。別借人。借，雙方都記。」',
-    ],
-    setFlags: { jian_slip: 1, unlock_slip: 1 },
-    next: 'shoes_wei',
-  };
-};
-
-SCENES.shoes_wei = (state) => {
-  const f = state.flags || {};
-  const extra = [];
-  if (f.linger_side && !f.xie_rope) extra.push('你想起側門裡那陣更沉更齊的靴跟。也許是，也許不是。你無法拿一句「外門亦是門」去對一扇關著的門。');
-  if (f.seen_by_inner) extra.push('你被內門看過。衛正言沒看你。沒看，比看更像門規——門規不需要認出每一個雜役，它只需要雜役認出它。');
-  return {
-    loc: '外門青石道',
-    paras: [
-      '先是折腰。靴聲比謝承淵沉，比執法堂核名的人齊。有人氣音：「衛長老。」',
-      '衛正言走的是外門青石道的邊——邊，已是體恤。小滿在你斜後方，新鞋的白麻在折腰時特別顯。沒有人想讓長老看見一雙新鞋。',
-      '他停。停得很短。「外門亦是門。」五個字。聲量剛好讓這一列聽見。內門弟子的背同時直了一直，像聽見了一句可以回去傳的仁。然後他走了。月門吞掉青衣。',
-      '值事的眼眶紅了一下。「聽見了。好好當差。別給門丟臉。」有人喃喃：「衛長老還記得我們。」記得一雙新鞋、一個秋薦、一句按例，也叫記得。',
-      ...extra,
-      '你掌心的紙上，「薦」字被汗浸得更暗。差事把人拆開。你有一段極短的空隙：小滿在後巷劈柴。',
-    ],
-    next: 'shoes_choice',
-  };
-};
-
-SCENES.shoes_choice = () => ({
-  loc: '廚下後巷',
-  paras: [
-    '柴刀頓在砧上，一下，一下。新鞋避開木屑，避開得小心，像鞋比腳金貴。',
-    '陳肅午前在執法堂。謝承淵白日有時經過庫房夾道。你也可以什麼都不做。什麼都不做，是外門最熟的功夫。',
-  ],
-  choices: [
-    { text: '提醒小滿', setFlags: { warn_man: 1, xiao_alert: 1, reveal_lean: '+1' }, to: 'shoes_warn' },
-    { text: '告訴陳肅', setFlags: { tell_chen: 1, chen_inform: 1, xiao_case: 1, chen_note: '+1' }, to: 'shoes_chen' },
-    { text: '告訴謝承淵', setFlags: { tell_xie: 1, xie_eye: 1, xie_favor: '+1', climb_lean: '+1' }, to: 'shoes_xie' },
-    { text: '裝沒看見', setFlags: { ignore_shoes: 1, xiao_unwarned: 1, willful_blind: '+1', safe: '+1' }, to: 'shoes_ignore' },
-  ],
-});
-
-SCENES.shoes_warn = (state) => {
-  const extra = state.flags.he_bond
-    ? '午後阿禾遠遠看你們從巷口錯開。他沒問。他只把井繩多繞了一圈，繞得很緊。'
-    : '巷口有人經過。經過的人把柴聲和話聲一起帶走。';
-  return {
-    loc: '廚下後巷',
-    paras: [
-      '你走進後巷。柴刀停。「鞋。」你說。小滿看自己的腳。「我說了，值事房發的。」「劉三走前也發過。」',
-      '這句落下，柴堆裡的蟲也停。小滿把刀放下，刃朝外。「我還知道我娘在鎮裡等漿衣的錢。值事房說：穿上，秋後有例銀。厚的東西，外門問來處，就是嫌。」',
-      '「薦。」你只給這個字。小滿笑了一下，笑完就沒了。「衛長老說外門亦是門。門裡的人，被門送出去，也算有門。」這不是信。這是把怕說成理。',
-      '「你別再來後巷。來，他們就當我們成串。我寧可自己走，不把你走進去。」刀又舉起。木屑濺上新麻。小滿這一次不擦了。',
-      extra,
-    ],
-    next: 'shoes_alley',
-  };
-};
-
-SCENES.shoes_chen = (state) => {
-  const extra = state.flags.he_grudge
-    ? '阿禾在廊下對人說：「有些人會找執法堂說話。」說的時候沒看你。所有人都知道看誰。'
-    : '退下的時候，階上有人看你。看的是「會舉」的背影。會舉的人，外門讓路。讓路不是敬。';
-  return {
-    loc: '執法堂階',
-    paras: [
-      '執法堂階仍乾淨。陳肅看冊，不看人。你報的是鞋，是秋薦的風，是值事房「核尺碼」。你沒報牙牌。沒報側門。',
-      '他的筆停了一息。「外門舉同門。記。」硃筆在你名下點，「舉，可是公。公，可是黨。先按公收。小滿——核鞋。你退下。再有風，仍來。別自己查。自己查，是窺。」',
-      '午後，小滿被從廚下叫走，去執法堂對尺。對完又放回廚下。鞋還在腳上。放回，不是無事。是案立了，人先養著。',
-      extra,
-    ],
-    next: 'shoes_alley',
-  };
-};
-
-SCENES.shoes_xie = (state) => {
-  const rope = state.flags.xie_rope
-    ? '你沒亮繩。不必亮。他看見你來，就知道繩起了作用。'
-    : '青袍仍淨。見你，像見一件自己放在外門的器物還在。';
-  return {
-    loc: '庫房夾道',
-    paras: [
-      '你去的是庫房夾道。他午後常過。' + rope,
-      '「小滿的鞋。」你說。謝承淵「嗯」了一聲。「值事房辦事。秋薦是例。例裡的人，穿新鞋，免得進府丟臉。丟臉，是門的臉。」',
-      '「你告訴我，很好。外門的眼，該往上報，不該橫著傳。橫著，陳執法就要寫黨。能幹的留。不能幹的，薦也是一條路。」',
-      '他把一包極薄的茶葉末塞到你手裏。「回去當差。小滿的事，你已經盡了。盡了，就別再盡。」小滿午後仍在劈柴。鞋仍新。',
-    ],
-    effects: { silver: 1 },
-    next: 'shoes_alley',
-  };
-};
-
-SCENES.shoes_ignore = (state) => {
-  const extra = state.flags.he_bond
-    ? '阿禾午後把半塊饃又掰給你。這次沒說話。不說，是怕你這次真的什麼都沒看見。'
-    : '阿禾從你身邊過，像看見一個把「沒看見」練得更熟的人。他沒讚。也沒罵。';
-  return {
-    loc: '外門井臺',
-    paras: [
-      '你沒進後巷。沒上執法堂階。沒在夾道等青袍。井臺上那雙白麻，你當它是值事房的冬前補發。當得很用力。',
-      '小滿午後仍來井邊。見你不看鞋，鬆了一口氣，又有一點說不清的塌。「還是你省事。」省事的人活得長。活得長的人，名冊上會親眼看著別人的格空掉。',
-      extra,
-    ],
-    next: 'shoes_alley',
-  };
-};
-
-SCENES.shoes_alley = () => ({
-  loc: '廚下夾道',
-  paras: [
-    '夾道口，錢六攔著。他沒分到核鞋，分到的是聽。後巷的柴聲、執法堂的階、夾道的青袍，他揀到了一截。',
-    '「井邊看鞋看入迷的，也配傳話？」筐已經撞上來。傳話兩個字不必真。真的是：這條巷今晚不能乾淨走出去。',
-  ],
-  battle: { enemyId: 'qian', onWin: 'shoes_win', onLose: 'shoes_lose' },
-});
-
-SCENES.shoes_win = () => ({
-  loc: '廚下夾道',
-  paras: [
-    '錢六坐下。不是跪。他揉腕，把譏咽回去。「鞋的事，當我沒聽。」沒聽的意思是：聽了，賣給下一個人。',
-    '你把袖裡那條紙按緊。紙還在。鞋還在小滿腳上。這一場只把巷口清開。',
-  ],
-  setFlags: { won_qian_shoes: 1, fame: '+1' },
-  next: 'shoes_close',
-});
-
-SCENES.shoes_lose = () => ({
-  loc: '廚下夾道',
-  paras: [
-    '你坐在柴屑上。錢六把筐踢回你身邊。「記住。」他沒說記住什麼。外門的記住，都是同一句。',
-    '值事的人經過，當沒看見。紙還在掌心。鞋還在小滿腳上。氣血只剩一絲。',
-  ],
-  setFlags: { lost_qian_shoes: 1 },
-  next: 'shoes_close',
-});
-
-SCENES.shoes_close = (state) => {
-  const f = state.flags || {};
-  const extra = [];
-  if (f.xiao_case) extra.push('值事多唸了一句：「執法堂有案者，晚冊旁注。旁注不是罪。」');
-  if (f.xiao_alert) extra.push('小滿應完，目光找過你。找到了，又立刻離開。像確認提醒過自己的人還在冊上。');
-  if (f.xie_eye) extra.push('內門雜役在廊外閃過。沒叫人。只看了一眼小滿的鞋，走了。');
-  if (f.ignore_shoes) extra.push('小滿應「在」的時候，你看自己的舊幫。舊幫安分。');
-  if (f.jian_slip) extra.push('袖裡那條撕名，邊毛，字暗。半個名字仍不像小滿。這更糟。糟在薦冊要的不是一個，是一批。');
-  return {
-    loc: '外門通鋪外廊',
-    paras: [
-      '晚冊照舊。劉三的空格仍空。點到小滿。小滿應「在」。應得很響，響得像要蓋住腳上的新。值事筆尖在「在」上頓了頓——頓，不是除，是記住這個「在」還能用幾日。',
-      ...extra,
-      '衛正言那句「外門亦是門」在廊下被人又咀嚼了一遍。咀嚼到後來，變成「門不會虧待我們」。虧待兩個字沒人說。說的是反面。',
-      '小滿回廚下收柴刀。新鞋在暗階上很白。白的東西今夜還不會走。走要手續。手續要文書、禮單、內門的簽字。',
-      '暮鼓響。你躺回通鋪之前，還能聽見擦鞋的聲音。一下，一下。像有人在很遠的地方，把名冊的格子擦亮，好寫下一個字。',
-    ],
-    setFlags: { shoes_done: 1 },
-    choices: [
-      { text: '回外門', to: '__hub_jian__' },
-    ],
-  };
-};
-
-
-SCENES.jian = (state) => {
-  const f = state.flags || {};
-  const extra = [];
-  if (f.jian_slip) extra.push('袖裡那條撕名的「薦」和案上這個字對上了。撕的是草稿的邊。邊能撕，心不能撕。');
-  if (f.token_jian) extra.push('鞋裡牙牌硌得適時。牌是骨，單是皮。皮攤在亮處，骨仍在你腳下。');
-  if (f.xie_eye || f.xie_rope) extra.push('你明白自己為什麼被選來捧匣。看得見的人，要你在場。在場，日後才能說「那日你也看見手續了」。');
-  return {
-    loc: '內門外廳',
-    paras: [
-      '秋薦的日子不避人。不避，是因為手續要人看。看過，才叫按例。你被叫來，不是上薦冊。是捧匣。',
-      '匣裡是禮：沈府的回帖、一封未拆的聘書式樣、一對新的鞋樣——比小滿腳上那雙更細。禮單上，人丁寫在銀下面。下面的位置，是價。',
-      '案上攤開薦冊草稿。封面朝上。硃字「薦」極大。極大，是要外門看見：這不是偷，這是門規。保人欄有一格已是謝承淵的預署，墨新。',
-      ...extra,
-      '廳角站著外門一列。小滿在列裡。新鞋擦過，白麻已經沾了一點路塵，仍比誰都新。小滿看見匣，喉頭動了一下，沒問匣裡有沒有自己的鞋樣。問，就是嫌。',
-    ],
-    next: 'jian_bone',
-  };
-};
-
-SCENES.jian_bone = (state) => {
-  const f = state.flags || {};
-  const extra = [];
-  if (f.xiao_alert) extra.push('小滿的氣音之後還有半句：「你說過。」說過，沒擋住尺。尺不認提醒。');
-  if (f.xiao_case) extra.push('管事寫完，補了一筆「執法堂有旁注。旁注不礙薦。」案和薦可以同時活在一個人身上。');
-  if (f.ignore_shoes) extra.push('小滿不看你。測骨的人有自己的恥。恥的是被量，不是沒被提醒。');
-  return {
-    loc: '內門外廳',
-    paras: [
-      '內門管事先唸例。例很長。長的部分全是沈府的體面：不納尋常武人，要骨相安穩、性子耐。「測骨。」管事說。沒有靈光。就是把人叫出去，捏腕骨，量肩。',
-      '「小滿。」小滿出列。新鞋在亮石上極響。管事不看鞋，看腕。「骨沉。」像報一個秤數。外門有人鬆氣。鬆錯了。骨沉不是留下。骨沉是合府。合府，才上薦。',
-      '管事又讓小滿踩過清水浸過的布。「印實。性子能壓。」寫的是「能壓」，不是「能活」。「測骨不問口。口，另測。今日不測口。」',
-      '小滿退回列。經過你，氣音只一個字：「沉。」像求證。像求救。像告訴你：自己已經被寫成可以送走的那種骨。',
-      ...extra,
-      '匣在你手上開始沉。沉的不是綢。是你知道下一步要簽字，簽字要人在場，在場的人裡包括你。',
-    ],
-    next: 'jian_write',
-  };
-};
-
-SCENES.jian_write = (state) => {
-  const f = state.flags || {};
-  let lift = '「這位。盤庫當差，側門掃葉，報事也勤。外門能幹者。備選。」';
-  if (f.admit_self) lift += '他補半句：「認得乾脆。府裡要這種。」';
-  else if (f.wait_xie || f.xie_cover) lift += '他補：「穩。穩的人，路上不生事。」';
-  else if (f.xie_greet || f.xie_rope || f.xie_eye) lift += '他幾乎微笑。「聽差的手，不該只掃地。」';
-  const listed = f.xie_rope || f.xie_greet || f.xie_eye || f.xie_hold || (f.climb_lean || 0) >= 2;
-  return {
-    loc: '內門外廳',
-    paras: [
-      '謝承淵先到。他對案一揖，揖的是禮單，不是人。看見你捧匣，點一點下巴，像點一件放對了位置的器物。',
-      '「禮齊。沈府今年只要三個。骨沉的，優先。外門能幹的，備選。寫上，府裡挑，門裡也挑。」他從管事手裡接過筆。「小滿。廚下。骨沉。寫上。」墨落。小滿那一格從「在」變成「薦」。',
-      lift,
-      listed
-        ? '你的名字被寫上的時候，廳裡沒有吸氣。外門不敢。吸氣像爭。'
-        : '筆尖在下一格停了一停，仍寫了。寫的理由改成：「在場捧匣。見手續。可備。」見手續的人，要麼封口，要麼上冊。',
-      '陳肅在側案翻罰冊。「此人有記過。記過不礙薦。薦出，記過隨人走。門清。」衛正言入。他不看禮單上的人丁。他看印泥乾不乾。「按例。」兩個字。比「外門亦是門」更短。更夠用。',
-    ],
-    setFlags: listed ? { player_listed: 1, xiao_listed: 1 } : { player_listed: 1, xiao_listed: 1, xie_see_form: 1 },
-    next: 'jian_choice',
-  };
-};
-
-SCENES.jian_choice = () => ({
-  loc: '內門外廳',
-  paras: [
-    '匣還在你手上。名字已落。墨未乾。未乾的墨，是外門唯一能碰的時候。碰，要當眾。',
-    '管事說：「捧匣的，若有話，現在說。過了這廳，草稿入匣，入匣即例。」謝承淵看你，溫的，像把話權又一次放到你嘴邊。',
-  ],
-  choices: [
-    { text: '求把自己的名字劃掉', setFlags: { name_off: 1, xie_rejected_lift: 1, chen_note: '+1' }, to: 'jian_off' },
-    { text: '求寫上正薦', setFlags: { name_on: 1, player_zheng: 1, xiao_to_alt: 1, climb_lean: '+2', escape_lean: '-1' }, to: 'jian_on' },
-    { text: '替小滿說話', setFlags: { speak_man: 1, xiao_plead: 1, party_flag: 1, reveal_lean: '+1', chen_note: '+1' }, to: 'jian_speak' },
-    { text: '沉默', setFlags: { name_silence: 1, safe: '+1' }, to: 'jian_silence' },
-  ],
-});
-
-SCENES.jian_off = (state) => {
-  const rope = state.flags.xie_rope
-    ? '腕間的繩勒了一下。紙上無名，繩上有人。'
-    : '他收回筆時，只有你聽見：「劃的是紙，不是我的眼。」';
-  return {
-    loc: '內門外廳',
-    paras: [
-      '「請劃掉。」你說。匣沿磕著手。「我是捧匣的。不是備選。」廳裡這才有吸氣。吸的是外門。',
-      '謝承淵的筆停住。「能幹不是罰。備選不是必走。寫上，是給你一條比掃地寬的路。」「請劃掉。」你只重複。',
-      '陳肅側案裡「嗯」了一聲。「外門自請除備。記。自請的人，日後別怨門不薦。」衛正言沒轉身。他聽見了。聽見，仍是按例。',
-      '謝承淵把你的名字塗了。塗得很慢。慢，是讓全廳看見他給過你，是你不要。塗完，筆尖在小滿那一格上點了點。正薦的小滿動都沒動。',
-      rope,
-    ],
-    setFlags: { player_listed: 0 },
-    next: 'jian_block',
-  };
-};
-
-SCENES.jian_on = (state) => {
-  const extra = state.flags.warn_man
-    ? '小滿看你的眼神裡沒有謝。提醒過的人，最後把額從自己腳下抽走。抽走也是手續。'
-    : '你終於看了那雙新鞋一眼。一眼，是確認自己踩過什麼。';
-  return {
-    loc: '內門外廳',
-    paras: [
-      '「請留下。不要備選，要正薦。」這句比劃掉更響。外門有人把你當瘟。瘟是會傳的。傳的是爭額。',
-      '謝承淵看你，這一次真有一點笑。「好。能幹的人，該自己要。」管事翻額。「沈府只要三。正薦已有小滿……」',
-      '謝承淵替你把後面的話說完：「額有限。你要正，小滿可改備。骨沉的人，府裡日後仍要。」衛正言仍不看人。「按例。正備可易。」',
-      '你的名字從備選進正薦。小滿的名字被他一筆劃到備選欄。劃得很乾淨。乾淨就是合法。小滿沒出聲。測骨不問口。改欄也不問口。',
-      extra,
-    ],
-    setFlags: { player_listed: 1, player_zheng: 1 },
-    next: 'jian_block',
-  };
-};
-
-SCENES.jian_speak = () => ({
-  loc: '內門外廳',
-  paras: [
-    '「小滿不當薦。」你說。匣晃了一下。「廚下缺人。骨沉……是江湖話。」這句碰了測骨的皮。管事臉色先變。陳肅的筆抬起來，像聞到黨。',
-    '小滿在列裡猛地搖頭，比你更怕。「沒有。我沒託人。鞋是值事房發的——」',
-    '「外門為同門爭薦額。」陳肅斷句，「爭，即黨。黨，比缺箱重。記下。」謝承淵立刻接口：「執法，這孩子是捧匣的，見人測骨，心軟。心軟不是黨。話，當沒說過。」',
-    '衛正言這才側過一點臉。「按例。薦不問口。口，另罰。」管事給你加了一筆「多嘴」。小滿那一格一個字都沒動。正薦。骨沉。鞋新。',
-    '小滿退得更後。後，是要跟你的袖分開。分開，才不像串。你救的那一下，先把小滿一個人的禍，變成兩個人的風。',
-  ],
-  effects: { demerit: 1 },
-  setFlags: { xiao_listed: 1, player_listed: 1 },
-  next: 'jian_block',
-});
-
-SCENES.jian_silence = (state) => {
-  const listed = state.flags.player_listed;
-  return {
-    loc: '內門外廳',
-    paras: [
-      '你不開口。匣端正。禮單不響。墨在草稿上自己乾。謝承淵看你一息。息盡，他把筆擱下，像對這結果並不意外。',
-      listed
-        ? '你的名字留在備選。你沒要，也沒拒。沒拒的東西，日後算你默認。默認的薦，逃的時候更難說「我從來不願」。'
-        : '名字在他手裡。你把話權又交回去。乾淨的人，草稿上仍可能有名。乾淨不是無名。乾淨是無話。',
-      '衛正言：「按例。」第三次。第三次比前兩次更淡。淡到像廳裡的香，聞久了就不叫香，叫規矩。',
-      '小滿等過你一眼。一眼沒等到話。這孩子把肩縮回去，縮進新鞋上面那一截舊袖裡。舊袖救不了新鞋。',
-    ],
-    next: 'jian_block',
-  };
-};
-
-SCENES.jian_block = () => ({
-  loc: '外廳外廊',
-  paras: [
-    '散廳。匣從你手上被拿走。廊下，執法堂一個外門弟子攔著——不是陳肅，是跑腿的那一種，專揀廳裡出過聲的人「核身」。',
-    '「捧匣的，站一下。廳裡的話，堂裡要對。」對，是搜袖。搜袖，是打。你功法在腰。',
-  ],
-  battle: { enemyId: 'enforcer', onWin: 'jian_win', onLose: 'jian_lose' },
-});
-
-SCENES.jian_win = () => ({
-  loc: '外廳外廊',
-  paras: [
-    '執法堂的人退了半步。他沒喊——喊了，裡頭要問為什麼一個捧匣的能把他搡開。',
-    '「過。」他說。過字比記過輕。輕的意思是：這筆他私下記。你袖裡若還有撕名，撕名還在。',
-  ],
-  setFlags: { won_enforcer_jian: 1, fame: '+1' },
-  next: 'jian_box',
-});
-
-SCENES.jian_lose = () => ({
-  loc: '外廳外廊',
-  paras: [
-    '他按著你的肩，把你搡出廊。「廳裡的話，我記下了。」他沒報全。報全，自己也要解釋為何攔在長老走後。',
-    '你自己起來。氣血只剩一絲。草稿已經入匣。入匣即例。',
-  ],
-  setFlags: { lost_enforcer_jian: 1 },
-  next: 'jian_box',
-});
-
-SCENES.jian_box = (state) => {
-  const f = state.flags || {};
-  const extra = [];
-  if (f.speak_man) extra.push('值事刻意走在你和小滿中間。中間是門規。門規怕成串。');
-  if (f.name_on && f.xiao_to_alt) extra.push('小滿被領去的是備選的核身，仍核。經過你時，氣音沒了。沒有「沉」。');
-  if (f.name_off) extra.push('謝承淵經過你，只留一句：「匣還你空的。空的好。空，明天仍能掃地。」');
-  if (f.player_listed) extra.push('你的名字在匣裡。匣在內門。你睡覺的通鋪上沒有它，它已經比你先離開外門。');
-  else extra.push('你的名字不在薦匣。不在匣，不等於不被用。用的方式更多。');
-  return {
-    loc: '外廳外廊',
-    paras: [
-      '手續的後半段不需要外門旁聽。不需要，仍讓你看見門口那一段：值事領小滿去側屋「核身」。核身是換衣服、點疤。體面話背後是一份要隨禮單走的人體清單。',
-      '小滿進側屋前，新鞋在門檻上停了停。沒回頭。回頭像認人。',
-      ...extra,
-      '這一章停在草稿入匣。人還沒走。走要起程的日子、要山下的車。你親眼碰過「薦」：文書、禮單、內門簽字。沒有秘術。門規夠用。',
-    ],
-    setFlags: { jian_done: 1 },
-    choices: [
-      { text: '回外門', to: '__hub_credit__' },
-    ],
-  };
-};
-
-
-SCENES.credit = (state) => {
-  const f = state.flags || {};
-  const extra = [];
-  if (f.inner_unlike || f.box_clue) extra.push('沉、火漆、細印。像把庫房缺的那一格，換成可以走路的尺寸。藥是皮。這次皮要下山。');
-  if (f.xie_rope) extra.push('值事補一句，極快：「謝師兄知你出山。酉時前，側門那裡會有人點箱。」點箱的人領功。出力的人走路。');
-  if (f.player_listed) extra.push('值事看你的眼神多停一息。「備選的也要當差。當差，才好寫『能出門』。」');
-  return {
-    loc: '青衡宗山門',
-    paras: [
-      '薦冊入匣之後第三日。小滿還在廚下。車還沒來。差事這一次寫的是下山。你從來沒出過這扇山門。',
-      '門衛看帖，不看你。「外門押箱。辰出，酉入。誤時，當逃。逃，按叛。」叛字比除重。除是名冊上的空格。叛是名冊上的朱叉。',
-      '值事把一隻封好的木箱放到你手上。箱不大，比黃耆那一箱瘦，沉得相似。封條是內門的。火漆紅得發黑。「送青陽鎮惠濟堂。箱別開。開，記過。丟，當叛。」',
-      ...extra,
-      '門軸響。你跨出門檻。門外的天更大。大，是沒有簷。沒有簷的天底下，你的記過忽然輕了一點。輕不是赦。是天不認得陳肅的冊。',
-    ],
-    next: 'credit_road',
-  };
-};
-
-SCENES.credit_road = (state) => {
-  const extra = (state.flags.wait_xie || state.flags.xie_cover)
-    ? '這套你見過。庫房裡他就攬過。攬過的人，下山仍攬。'
-    : '下山的差，從來記在能進內門報的那張嘴上。你們是肩。肩不記功。';
-  return {
-    loc: '下山土路',
-    paras: [
-      '箱的繩勒進肩。同行的人走在你側後，保持半步。半步是門規教的：兩人成行，三人成串。',
-      '路轉過第三道彎，鐘聲聽不見了。聽不見鐘的時候，腿會自己想跑。你把這個念頭踩死。門衛說過叛。逃是一條路。路要腳印。腳印此刻仍朝鎮。',
-      '同行的人忽然開口：「惠濟堂的掌櫃姓惠。謝師兄的帖，比我們的臉好使。」「謝師兄沒來。」你說。「功勞來。」他笑了一下，立刻收掉。',
-      extra,
-      '鎮的氣味先到。油、醬、尿、漿衣的鹼。同行的人看你：「別聞太久。聞久了，酉時不想回。」',
-    ],
-    next: 'credit_town',
-  };
-};
-
-SCENES.credit_town = (state) => {
-  const clue = state.flags.box_clue
-    ? '黃耆沒有。內路。換走的東西，也許從這條街走。街不認黃耆。街認帖。'
-    : '黃耆沒有。內路。你肩上的空，忽然和庫房那一格疊在一起。';
-  return {
-    loc: '青陽鎮',
-    paras: [
-      '鎮比山門吵。吵是活的。有個孩子撞你的箱，被娘拽走：「別碰山上的。山上的事，沾上就沉。」街自己讓出一指寬。一指寬不是敬。是怕。',
-      '惠濟堂的掌櫃看帖，先看火漆，再看你。「謝師兄的箱。放下。簽在這。」你說：「箱是我押來的。」掌櫃的筆不停。「帖上寫謝承淵。我認帖。人，隨便。」',
-      '他交出一封回帖，封泥是沈府的，香先撲鼻。香甜，甜得不像藥。「冬藥。」掌櫃把另一包丟上來，粗，苦，「黃耆沒有。黃耆走內路。你們外門吃這個。」',
-      clue,
-      '掌櫃補了一句：「沈府的人今早也在鎮裡。要車，要三個座位。他們不納尋常武人——山上若送人去，教他們別把拳掛在臉上。」三個座位。秋薦的額。車已在鎮裡等。',
-    ],
-    next: 'credit_wash',
-  };
-};
-
-SCENES.credit_wash = (state) => {
-  const extra = state.flags.sell_disciple_known
-    ? '你知道有的人連親事都沒見到，名冊就除了。這句話在舌上，像一塊不肯化的鹼。你什麼都沒說。'
-    : '你什麼都沒說，只把冬藥的包抱緊。沒說，她把你的沉默當成「他還在，只是羞」。';
-  return {
-    loc: '鎮河埠',
-    paras: [
-      '回程本可以不經過河埠。你經過了。理由是藥包要避驢糞。理由下面還有一個空格：劉三的妹妹。',
-      '有人在杵衣。一個女子抬袖擦汗，看見你的外門短褐，杵停了。「劉三……劉三還在嗎。他月例這個月沒到。我以為他忙。忙到忘了寄。忘了也好。只要還在。」',
-      extra,
-      '對岸車棚裡那點香，又甜了一下。沈府的人在鎮裡要座位。漿衣的水，永遠到不了對岸。女子又舉起杵。「去吧。山上的，酉時要關門。」',
-      '埠頭轉角，一個漿衣的人攔路。不是她。是男的，杵還濕，眼紅。「山上的也配問劉三？」鹼氣衝上來。他要的不是話。是把冬藥從你懷裡搶去換月例。',
-    ],
-    next: 'credit_fight',
-  };
-};
-
-SCENES.credit_fight = () => ({
-  loc: '鎮河埠',
-  paras: [
-    '木杵已經掄起來。同行的人立刻低頭走路——走路是門規。門規不收家屬，也不收河埠的打。你功法在腰。帖在懷裡。',
-  ],
-  battle: { enemyId: 'jiang', onWin: 'credit_win', onLose: 'credit_lose' },
-});
-
-SCENES.credit_win = () => ({
-  loc: '鎮河埠',
-  paras: [
-    '漿衣的人退到鹼桶邊。杵掉了。他沒再搶。鹼水在你袖上發白。',
-    '回帖還在。冬藥還在。酉時還在脖子上。你把肩上的勒痕當成一記還能用的勁。',
-  ],
-  setFlags: { won_jiang: 1, fame: '+1', unlock_merit: 1 },
-  next: 'credit_merit',
-});
-
-SCENES.credit_lose = () => ({
-  loc: '鎮河埠',
-  paras: [
-    '你跪在濕板上。漿衣的人沒搶到帖——同行的人這才回頭，把藥包從水裡撈起，塞回你懷裡。「走。酉時。」',
-    '氣血只剩一絲。帖還在。人還要回山。',
-  ],
-  setFlags: { lost_jiang: 1 },
-  next: 'credit_merit',
-});
-
-SCENES.credit_merit = (state) => {
-  const extra = (state.flags.linger_side || state.flags.seen_by_inner)
-    ? '他報的時候目光擦過你，像把你算進「我看得到的手」。手不記功。手記聽話。'
-    : '外門列裡有人看你。看的是：這一次你出了山，功勞已經掛在他腰間那枚玉牌旁邊。';
-  return {
-    loc: '山門內側廊',
-    paras: [
-      '你酉時前入門。門衛點的是帖和藥。帖在，藥在，時辰在。不叛。側廊的燈比外門亮。謝承淵已經站在那兒。青袍無塵。他根本沒下過山。可他臉上有一點恰到好處的乏。',
-      '管事問：「鎮裡事。」謝承淵一揖。「弟子已妥。沈府回帖在。冬藥齊。惠濟堂那頭，重量與籤有差，我讓他們另記。外門跟差的，沒誤時。」我讓。跟差。你的肩上的勒痕還在。勒痕不發言。',
-      extra,
-      '陳肅來了。他來聽的是「出山有沒有逃」。沒逃，他點一下頭。「外門酉入。記。功——內門自請。」謝承淵卻把你叫出半步。「這位出力。出力，我記下。記下，不是分功。是日後還有差，知道派誰。」',
-      '管事已經在功簿上寫：謝承淵，巡鎮妥帖。下面沒有你的名字。沒有的位置，叫跟差。你還能出聲。出聲有三條。三條都當眾。',
-    ],
-    next: 'credit_choice',
-  };
-};
-
-SCENES.credit_choice = () => ({
-  loc: '山門內側廊',
-  paras: [
-    '功簿未合。陳肅在。外門列在。燈把青袍照得很正。肩上的勒還在。勒不發言。發言的是嘴。',
-  ],
-  choices: [
-    { text: '當眾說清是誰做的', setFlags: { claim_work: 1, merit_clash: 1, reveal_lean: '+1', xie_watch: '+2', chen_note: '+1' }, to: 'credit_claim' },
-    { text: '認了讓他領', setFlags: { let_xie_merit: 1, xie_merit_ok: 1, xie_hold: '+1', climb_lean: '+1' }, to: 'credit_yield' },
-    { text: '把話賣給陳肅', setFlags: { sell_chen_merit: 1, chen_buy: 1, chen_note: '+1', xie_risk: '+1' }, to: 'credit_sell' },
-  ],
-});
-
-SCENES.credit_claim = () => ({
-  loc: '山門內側廊',
-  paras: [
-    '「箱是我押的。」你說。鎮裡那口空氣還在肺裡，把聲音撐得比外庭大，「謝師兄沒下山。惠濟堂認帖不認人。秤差，是掌櫃自己皺的眉。」',
-    '廊裡靜了一息。謝承淵先笑。「看，我就說這孩子出力。出力的人，口也直。功簿上的字，是門裡的字。門裡的字，不能寫外門出山——寫了，沈府問：青衡宗怎麼讓雜役代巡？」',
-    '陳肅看你。「當眾爭功。記過。功仍歸內門。外門再有出山，另核。」你把話說清了。清的是事實。事實進不了功簿。進的是記過。',
-    '謝承淵經過你身邊，聲極低：「鎮裡的風灌多了。下次把風留在土路上。留在廊裡，會凍。」',
-  ],
-  effects: { demerit: 1 },
-  next: 'credit_lamp',
-});
-
-SCENES.credit_yield = (state) => {
-  const bait = (state.flags.xie_bait || state.flags.xie_rope)
-    ? '他退廊時讓人塞你兩文。「月例那邊，我再看。」再看，是餌。餌在下山之後更香。'
-    : '功簿合上。你的肩勒還在。勒在這一刻忽然像一枚內門發的、不給的玉牌。';
-  return {
-    loc: '山門內側廊',
-    paras: [
-      '你不出聲。或你只說：「是跟差。」跟差兩個字把他的嘴坐實。坐實，全列都聽見你認了。',
-      '謝承淵點頭，點得像讚一個穩的人。「穩。」他又用過這個字。庫房用過。薦廳用過。現在用在功上。穩的人，功勞可以反覆借。',
-      '陳肅：「外門無異議。記。功歸謝承淵。」無異議三個字寫得比記過乾淨。乾淨的出賣，門規叫作懂事。',
-      bait,
-    ],
-    effects: (state.flags.xie_bait || state.flags.xie_rope) ? { silver: 2 } : undefined,
-    next: 'credit_lamp',
-  };
-};
-
-SCENES.credit_sell = () => ({
+SCENES.c32 = () => ({
   loc: '執法堂階',
   paras: [
-    '你不當眾頂。散列的時候，你跟到執法堂階。陳肅走得不快。他知道會有人跟。',
-    '「謝師兄沒下山。」你說，「帖是真的。人是假的。功簿是假的。」陳肅停。「外門賣內門的嘴。買。買了，不是給你功。是記他知情。知情，我早記過。再記，是加厚。」',
-    '他看你。「你要揭，這點不夠。你要爬，謝承淵比我更會給繩。你來找我，是第三條——兩頭留。兩頭留的人，活得短，冊上卻熱鬧。」',
-    '他仍收下這句。硃筆在謝承淵那頁的邊又點了一點。「回去。別說你來過。說，就是黨。黨，我先剪你。」功簿不會改。改的是陳肅袖裡的厚度。',
+    '成串。陳肅用這兩個字整肅外門。缺箱、夜探、側門停久的、多嘴的，名字寫在同一頁邊上。邊上就是黨。',
+    '執法堂弟子在階上搜袖。阿禾若還在，他的肩會碰你。若不在，空。這串你要怎麼拆。',
   ],
-  next: 'credit_lamp',
-});
-
-SCENES.credit_lamp = (state) => {
-  const f = state.flags || {};
-  let line = '你把冬藥交了。藥是苦的，真的。箱沒回來。回帖進了內門。功進了謝承淵。你進了通鋪的門——還在。還在，比叛好。';
-  if (f.he_confides || f.he_bond) line = '阿禾在井邊等你。「你出過門。出過的人，眼會變。變了，別對小滿講鎮裡的車。車已經有座位。講了，像催。」';
-  else if (f.he_fear || f.he_grudge) line = '阿禾聽人說你出山。他避開你的眼，像避開一個知道逃路的人。知道逃路的人，執法堂查串時最好先供出來。';
-  const extra = f.claim_work
-    ? '廊下有人把你當死人看。看完又看謝承淵的方位。方位在內門。內門沒死人。'
-    : f.let_xie_merit
-      ? '有人羨慕你被點名「出力」。羨慕是外門的毒。毒會讓人明天也去側門掃葉，盼望一截繩。'
-      : f.sell_chen_merit
-        ? '你誰也不像。不像揭的英雄，不像爬的紅人。像一塊兩邊都寫了字的紙。紙還沒被撕。'
-        : '';
-  return {
-    loc: '外門通鋪外廊',
-    paras: [
-      line,
-      extra,
-      '小滿在廚下。新鞋仍白。車在鎮裡。座位有三。回帖已到。手續只差人填進去。你出了一次山，看見鹼，看見香，看見劉三的妹妹把「還在」養在杵裡。',
-      '三條路仍開。山門仍關。關的裡面，記功的筆已乾。乾的是他的名。濕的是你肩上那條勒。',
-    ],
-    setFlags: { credit_done: 1 },
-    choices: [
-      { text: '回外門', to: '__hub_chain__' },
-    ],
-  };
-};
-
-
-SCENES.chain = (state) => {
-  const f = state.flags || {};
-  const extra = [];
-  if (f.party_flag || f.speak_man || f.he_signal) extra.push('你已經在他的邊注裡。邊注今日要兌現。');
-  if (f.chen_inform || f.chen_buy || f.sell_chen_merit) extra.push('他認你這張嘴。認，不是護。是知道這張嘴可以對著別人開。開過的嘴，今日他會看你開不開。');
-  if (f.merit_clash) extra.push('當眾爭功的人，像一根從傘下伸出來的刺。刺好拔。');
-  return {
-    loc: '外門庭',
-    paras: [
-      '下山回來的次日。冬藥的苦還在值事房。功簿已乾。乾的隔夜，陳肅來封外庭。兩端有執法堂的人攔路。掃帚靠牆，沒人敢拿。',
-      '「外門成串。查。」陳肅的冊比盤庫那本薄，薄的冊更毒。毒在它不點貨，點人。「門規：外門不得私結。私結者，黨。黨，剪。」',
-      '沒有人問什麼叫串。串是兩個人說過夜話。串是井邊對過視線。串也可以什麼都不是——是陳肅這一日要用的字。字要用，人就得填進去。',
-      '你站在末列。肩上的勒痕還青。青，證明你出過山。出過山的人，知道鎮裡有車，有鹼，有不關門的天。知道的人，最像會串著逃。',
-      ...extra,
-    ],
-    next: 'chain_who',
-  };
-};
-
-SCENES.chain_who = (state) => {
-  const f = state.flags || {};
-  if (f.he_fear || f.he_grudge) {
-    return {
-      loc: '外門庭',
-      paras: [
-        '「井。阿禾。」阿禾出列。出列的步子穩。穩得像一塊早就寫好的碑。',
-        '「回執法。」他的聲音乾，「夜裡有人敲過我的門。側門牆根有過記號。庫房那夜……有人跛。跛的人鞋裡有東西。見著的是誰去掃側門，誰去請安，誰出山。」',
-        '他仍不點你的名。不點，是把刀柄向外。陳肅不必聽名。冊上缺箱經手、罰站、側門、出山，重疊成一個人。',
-        '「外門互舉。」陳肅點筆，「舉，可公。阿禾——供同門，記功一次。此人——」硃筆在你那一格上敲，「出列。」',
-        '功。外門也有功。功是把人送上案。他看你了。看的時間極短。短裡沒有歉。從你讓他少說的那一日起，他就在等一個能把怕還回去的手續。手續今日合法。',
-      ],
-      setFlags: { he_named_you: 1 },
-      next: 'chain_wei',
-    };
-  }
-  if (f.he_bond || f.he_confides) {
-    return {
-      loc: '外門庭',
-      paras: [
-        '「井。阿禾。」阿禾出列。水桶不在手上。手上空，像已經被搜過。他的後頸有汗。汗在卯時，是怕。',
-        '陳肅：「此人與缺箱在場者近。與側門記號近。與夜話近。近，即串。串，先剪。」近。沒有實證的近。阿禾沒看你。不看，是他還想把你留在近的外面。',
-        '「阿禾。供。夜裡誰來過。鞋裡誰藏過。井邊誰看過誰的鞋。」供字落下，庭裡的蟬都不叫。他若開口，你完。他若不開口，他完。這就是成串。',
-        '小滿在列裡把新鞋往後縮。縮，沒用。陳肅的第二筆已經點到廚下。「小滿。薦在即。薦前若有繫，繫要剪斷。斷了，才好上車。」',
-      ],
-      setFlags: { he_first_cut: 1 },
-      next: 'chain_wei',
-    };
-  }
-  return {
-    loc: '外門庭',
-    paras: [
-      '阿禾仍出列。理由改成：「井邊人雜。雜，易串。先問。」問的人不必有私話。必要的是今日這本薄冊要有人名。',
-      '阿禾看你一眼。一眼裡什麼都沒有。陳肅不聽沒有。陳肅聽供。',
-      '小滿亦被點到「廚下有繫」。有繫，是新鞋。新鞋把人從列裡劃出半步，半步就是可剪可送。',
-    ],
-    setFlags: { he_first_cut: 1 },
-    next: 'chain_wei',
-  };
-};
-
-SCENES.chain_wei = () => ({
-  loc: '外門庭',
-  paras: [
-    '折腰。這一次衛正言沒有走邊。他走中。走中，是要讓外門看見長老在場。在場，成串就不是私刑。是門規。',
-    '陳肅把薄冊捧上去。「請長老示。外門自潔。」衛正言接冊，不翻。「門規清明。外門自潔，可嘉。」可嘉。嘉的是剪。嘉的是陳肅的硃。',
-    '內門弟子把那卷門規展開，唸了三條。三條都是「不得私結」「不得夜聚」「不得互為耳目」。耳目兩個字唸得響。你當過謝承淵的眼，當過陳肅的嘴，當過阿禾的暗號。三條路在這一條上疊車。',
-    '「按例。剪其甚者。其餘，警示。」甚者。誰甚，由陳肅填。衛正言已經把「可嘉」留下了。留下，就可以走。月門吞掉青衣。庭裡只剩硃筆。硃筆比長老近。近的東西，才殺人。',
+  setFlags: { met_chen: 1 },
+  choices: [
+    { text: '把過攬到自己身上', setFlags: { c32: 'take', reveal_lean: '+1' }, to: 'c32_go' },
+    { text: '把阿禾的名摘出去', setFlags: { c32: 'cut', climb_lean: '+1' }, to: 'c32_out' },
+    { text: '跪求劃掉', setFlags: { c32: 'kneel', flee_lean: '+1' }, to: 'c32_out' },
   ],
-  next: 'chain_choice',
 });
-
-SCENES.chain_choice = () => ({
-  loc: '外門庭',
+SCENES.c32_go = () => ({ loc: '執法堂階', paras: ['執法堂弟子搜你袖。指節磕腕骨。成串兩個字當喝。你若硬扛，這一場要過手。'], battle: { enemyId: 'enforcer', onWin: 'c32_win', onLose: 'c32_lose' } });
+SCENES.c32_win = () => ({ loc: '執法堂階', paras: ['他退了半步。陳肅在門裡看著，筆沒停。「外門還手，記膽。膽可留。」', '這一串沒全斷。可你的名從邊上挪到了中間——中間更顯。顯，是揭的代價。'], setFlags: { chain_resist: 1 }, next: '__hub_done__' });
+SCENES.c32_lose = () => ({ loc: '執法堂階', paras: ['你跪在階上。氣血一絲。陳肅：「成串未散。先記。」', '同門繞開你。繞開是活法。你自己起來。門規不給外門「結束」。'], next: '__hub_done__' });
+SCENES.c32_out = (state) => {
+  const k = state.flags.c32;
+  const paras = k === 'cut'
+    ? ['你說阿禾只是掃階。話是真的，也是刀。陳肅把阿禾的名從邊上劃掉，加在你邊上。', '阿禾活命。你更像黨首。爬的人，常用別人的活當階。']
+    : ['你跪。額抵青石。陳肅看了你一眼，「無骨。可無骨的人好使。」硃筆劃了你名下三分之一。', '活了。活成好使的。階上的灰粘在額頭，像印。'];
+  return { loc: '執法堂階·陳肅', paras, next: '__hub_done__' };
+};
+SCENES.c33 = () => ({
+  loc: '青陽鎮·舊姓',
   paras: [
-    '陳肅：「成串二人。可互證。可互舉。可自認。不語者，皆記黨。罰：記過、扣三月月例、杖——杖免。免杖，是長老說剪甚留餘。留餘，不是留情。」',
-    '阿禾的呼吸你聽得見。聽見，就要選。選完，三條路仍在，可這一刀會把某一條踩深。',
+    '再下山。鎮東祠的香灰裡有人叫住你。老，眼濁，卻把舊姓唸對了。「你是那夜沒燒完的。」',
+    '他手抖。「牌位撤了。撤的人說是清繳。清繳不是匪。」周圍有耳。相認，否認，還是付錢封口。',
   ],
   choices: [
-    { text: '保阿禾', setFlags: { protect_he: 1, he_saved: 1, reveal_lean: '+1', chen_note: '+1' }, to: 'chain_protect' },
-    { text: '棄他', setFlags: { abandon_he: 1, he_abandoned: 1, he_to_cart: 1, he_grudge: '+1', safe: '+1', reveal_lean: '-1' }, to: 'chain_abandon' },
-    { text: '拿他當投名狀', setFlags: { sell_he: 1, he_sold: 1, he_to_cart: 1, climb_lean: '+1' }, to: 'chain_sell' },
+    { text: '相認', setFlags: { c33: 'yes', old_name_known: 1, reveal_lean: '+1' }, to: 'c33_out' },
+    { text: '否認', setFlags: { c33: 'no', climb_lean: '+1' }, to: 'c33_out' },
+    { text: '付錢封口', setFlags: { c33: 'pay', flee_lean: '+1' }, to: 'c33_out' },
   ],
 });
-
-SCENES.chain_protect = (state) => {
-  const extra = state.flags.he_bond
-    ? '他出列回列的時候，經過你，聲音裂開：「別再保。保第二次，我就是你的除。」'
-    : '謝承淵不在場。不在場的傘，保不了當眾自認的人。傘只保能幹，不保成串。';
-  return {
-    loc: '外門庭',
-    paras: [
-      '「沒有串。」你說，「話是我問的。夜是我走的。井是我停的。他只是在。」你把近全部認到自己身上。阿禾的肩垮下去。',
-      '陳肅看你。「自認。好。自認者，甚。甚者剪。」硃筆在你名下連點，「阿禾——從。從者，警示。掃執法堂階五日。再近，除。」',
-      '從。阿禾沒被除。沒被除的代價是你變成甚。甚的罰：記過加一，月例再扣。逃的路，山門先關一寸。',
-      extra,
-      '執法堂弟子已經上來，要核你的袖——自認的人，袖裡不該再有第二個人的東西。核，是打。',
-    ],
-    effects: { silver: -8, demerit: 1 },
-    setFlags: { player_甚: 1 },
-    next: 'chain_fight',
-  };
+SCENES.c33_out = (state) => {
+  const k = state.flags.c33;
+  if (k === 'yes') return { loc: '青陽鎮·舊姓', paras: ['你點頭。老人哭，又立刻止住。「別回祠。祠裡的青，不是祭。」', '舊姓在鎮裡活了一息。一息就夠把清繳兩個字釘進你耳裡。'], setFlags: { purge_hint: 1 }, next: '__hub_done__' };
+  if (k === 'no') return { loc: '青陽鎮·舊姓', paras: ['你說認錯人。老人看你袖口的外門灰，把話嚥回去。嚥回去的話，比說出來的重。', '你仍是青衡的雜役。雜役沒有舊姓。沒有舊姓，好入冊。'], setFlags: { purge_hint: 1 }, next: '__hub_done__' };
+  return { loc: '青陽鎮·舊姓', paras: ['你把碎銀塞進他手。「當沒看見。」他收了，又把其中一文扔回你腳邊。「這文給你買忘。買不掉。」', '封口是逃的一種。逃的人，常先堵住別的嘴。'], effects: { silver: -8 }, setFlags: { purge_hint: 1 }, next: '__hub_done__' };
 };
 
-SCENES.chain_abandon = (state) => {
-  const extra = state.flags.he_grudge
-    ? '他被定為甚的時候，反而鬆了。鬆，是因你棄得乾脆，乾脆對得上他供得乾脆。兩個人把情分兩次殺完。'
-    : '阿禾看你。這一次有歉，有恨，有一種把半塊饃後悔到底的白。白著，被執法堂的人帶去側廊等籤。';
-  return {
-    loc: '外門庭',
-    paras: [
-      '你不開口。或你只說：「各人的差，我不知道。」不知道，是盤庫第一日那句「我沒看見」的熟練延長。',
-      '「此人無供。無供者，從。阿禾——甚。」陳肅要一個甚。甚落到先出列的那個人身上。「阿禾，黨首。記過兩次。扣三月。名冊旁注：可薦則薦，不可薦則除。」',
-      '可薦則薦。把剪下來的人填進沈府的座位。座位不嫌黨。黨出了山門，就叫聯姻。門清。',
-      extra,
-      '你仍在列裡。安全是真的。真的安全裡，井邊空了一個打水的位置。執法堂弟子仍要「核從者」。核，輪到你。',
-    ],
-    next: 'chain_fight',
-  };
-};
-
-SCENES.chain_sell = (state) => {
-  const climb = state.flags.xie_rope || state.flags.xie_greet || (state.flags.climb_lean || 0) >= 2;
-  if (climb) {
-    return {
-      loc: '外門庭',
-      paras: [
-        '「他夜裡來過通鋪。說過缺箱。說過火漆。說過劉三。」你把能賣的賣成條。「我沒聽完。我來報。串，是他的。」',
-        '阿禾的臉在這幾句裡從白到青。陳肅連點：「互舉。舉者，公。阿禾，甚。此——知情不即報，記過一次。記過，可抵。抵，看內門要不要人。」',
-        '你把阿禾變成自己過的墊。月門外銀杏葉響。有青袍停了一停。謝承淵未必要你當眾賣。賣了，他仍會用。用的理由是：這孩子懂剪。',
-        '執法堂弟子上來核你的「知情」。核，是搜，也是打。',
-      ],
-      effects: { demerit: 1 },
-      next: 'chain_fight',
-    };
-  }
-  return {
-    loc: '外門庭',
-    paras: [
-      '你對陳肅說，聲量剛好全庭能聽：「阿禾知庫房側門虛扣。知黃耆籤真秤假。」揀完，自己也像被揀過。',
-      '陳肅的眼終於抬到你臉上。「好。外門能自潔到骨。骨，可留。」硃筆在阿禾名下寫甚，在你名下寫「舉黨有功」。外門的功勞你在鎮裡沒拿到。拿到的是這一筆。',
-      '衛正言剛唸過，不得互為耳目。給執法堂當，叫清明。阿禾沒罵你。罵要口。',
-      '執法堂弟子仍要核「有功」的袖。有功的人，袖裡更要乾淨。',
-    ],
-    setFlags: { chen_ear: 1 },
-    next: 'chain_fight',
-  };
-};
-
-SCENES.chain_fight = () => ({
-  loc: '外門庭',
+SCENES.c34 = () => ({
+  loc: '側門·清繳',
   paras: [
-    '執法堂弟子擋在你身前。冊在他腋下。硃筆的味還在指間。「核。」核字比拳先到。',
-  ],
-  battle: { enemyId: 'enforcer', onWin: 'chain_win', onLose: 'chain_lose' },
-});
-
-SCENES.chain_win = () => ({
-  loc: '外門庭',
-  paras: [
-    '執法堂的人退了半步。他沒把你按進薄冊——薄冊已經寫完。這一場只是核。核完，人還要去雜門看車。',
-    '你把袖理好。袖裡若有牙牌，牙牌還在。庭裡的葉被值事掃平。掃平，叫外門自潔。',
-  ],
-  setFlags: { won_enforcer_chain: 1, fame: '+1' },
-  next: 'chain_cart',
-});
-
-SCENES.chain_lose = () => ({
-  loc: '外門庭',
-  paras: [
-    '你跪在青石上。執法堂的人在冊邊點了一點，像點一棵還在的樹。點完，走。',
-    '氣血只剩一絲。車不會等你站穩。雜門已經開了一線。',
-  ],
-  setFlags: { lost_enforcer_chain: 1 },
-  next: 'chain_cart',
-});
-
-SCENES.chain_cart = (state) => {
-  const f = state.flags || {};
-  const extra = [];
-  if (f.xiao_alert) extra.push('你提醒過。提醒過的鞋仍上車。話擋不住車轍。');
-  if (f.name_on && f.xiao_to_alt) extra.push('小滿是備選。備選今日仍上。車不等。不等的座位把備選當正。你爭來的正薦格，沒把這孩子留下。');
-  if (f.he_to_cart) {
-    if (f.he_sold) extra.push('阿禾第二個被點。他經過你時，吐了一口。吐在土上，不是你鞋上。土不記仇。人記。');
-    else if (f.he_abandoned) extra.push('「阿禾。可薦則薦。上車。」他笑了一下，很短，「你沒看見。好。」');
-    else extra.push('阿禾被點上車。他經過你，什麼都沒說。');
-  } else if (f.he_saved) extra.push('阿禾不上這輛——他掃階。掃階的人看著車走。看著，有時比上車更罰。');
-  if (f.token_jian) extra.push('牙牌硌著。牌上的薦兌現了。兌現的不是你——或也是，若你還在匣裡，只是你的車還沒到。');
-  return {
-    loc: '下山雜門',
-    paras: [
-      '成串的薄冊合上。甚的人被帶到雜門。雜門平時運柴。今日運人。車是鎮上那輛。香從車簾縫裡漏出來，甜過惠濟堂的沈府回帖。',
-      '值事點名，聲調與晚冊相同：「小滿。薦。上車。」小滿走。新鞋在土裡立刻舊了一圈。舊這一圈，沒人給換。小滿沒找你。沒找，是側屋核身時已經教過：外門有繫則記。',
-      ...extra,
-      '車軸響。雜門開。車轍印在泥裡，深，直，朝南。南邊有沈府。沈府有香。你仍在列裡。列少了人。少了的位置，值事用掃帚把葉掃平。',
-      '晚冊將寫除。筐裡沒有新草鞋。鞋走了。走的人沒有名帖給妹妹。妹妹在鎮裡仍以為月例會來。門規不收家屬。不收，所以清明。',
-    ],
-    setFlags: { chain_done: 1, xiao_gone: 1 },
-    choices: [
-      { text: '回外門', to: '__hub_sleeve__' },
-    ],
-  };
-};
-
-
-SCENES.sleeve = (state) => {
-  const f = state.flags || {};
-  const extra = [];
-  if (f.he_saved) extra.push('阿禾在執法堂階上。掃帚一下一下。他見你經過，掃帚不停。不停，是他答應過：別再保。');
-  else if (f.he_to_cart) extra.push('阿禾的小房門開著。筍乾的甜更腐。床板空。空的床板比除名乾淨。');
-  if (f.he_sold || f.he_abandoned) extra.push('外門讓路。讓得比你舉過小滿那次更寬。寬，是怕。怕你的嘴。');
-  return {
-    loc: '外門井臺',
-    paras: [
-      '車走後第一個早晨。晚冊已寫除。小滿那一格的墨點滲進下一行，和劉三的空疊在同一種滲法裡。值事唸「在」的時候，跳格。跳得熟。',
-      '你去井邊。井繩還在。打水的人少一隻手。廚下有人把小滿的舊鞋從井臺下撿走，當引火。新鞋上車了。舊的留下來燒。燒，很合法。',
-      ...extra,
-      '冬藥的苦散盡了。你掃。掃到夾道時，有人叫你的職，不叫你的名。叫職的差事，會把袖裡那頁送到你能碰到的距離。',
-    ],
-    next: 'sleeve_page',
-  };
-};
-
-SCENES.sleeve_page = (state) => {
-  const f = state.flags || {};
-  if (f.chen_buy || f.chen_inform || f.chen_ear || f.sell_chen_merit) {
-    return {
-      loc: '執法堂',
-      paras: [
-        '執法堂午後無人。無人是假的。陳肅讓你進來抄冊——成串薄冊要抄一份送內門。案角壓著另一頁。盤庫那日他袖走的，缺箱。此刻不袖。攤著。攤得太正。',
-        '「抄薄冊。」他說，「這頁別抄。別抄的東西，你仍要看見。看見，告訴我你看見了什麼。香盡之前我回來。」',
-        '他走。袖空。空袖比有紙更像網。你若取走，他知道你敢。你若交給謝承淵，他知道你的繩。你若原樣留下，他知道你怕。',
-        '香燃。紙在案角。火漆印在紙頭，紅得發黑。你把紙捲進袖。捲，是已經看見。看見的人，裝沒看見，要比井邊的新鞋費力。',
-      ],
-      setFlags: { page_reach: 1, page_via_chen: 1 },
-      next: 'sleeve_read',
-    };
-  }
-  if (f.xie_rope || f.xie_greet || f.xie_eye || f.let_xie_merit || (f.climb_lean || 0) >= 2) {
-    return {
-      loc: '內門側門·銀杏',
-      paras: [
-        '側門兩棵銀杏葉更稀。窗紙撥開。繩若還在腕間，繩先癢。謝承淵的聲仍溫。「陳肅那頁，今日酉時要拿去內門對冊。對冊的空隙，階上只留一個管簽。管簽的人認得我的茶。送茶的時候，你取紙。取了，給我。」',
-        '他看你。「那頁上有我，也有他。也有薦額。你看了，只能有一個去處。去處是我。去處是他，你就是把他的刀補完。」',
-        f.merit_clash ? '他補得很輕：「當眾說清的人，更該把紙說到對的耳朵裡。對的耳朵，不是滿庭。」' : '茶的香與沈府那味不同。不同，仍是拴。',
-        '你去執法堂送茶。管簽的人讓路。案角那頁像等過你。你取走。取走即賊。不取即違他的繩。你已經取了。',
-      ],
-      setFlags: { page_reach: 1, page_via_xie: 1 },
-      next: 'sleeve_read',
-    };
-  }
-  if (f.he_saved || (f.he_bond && !f.he_to_cart)) {
-    return {
-      loc: '執法堂階',
-      paras: [
-        '你經過執法堂階。阿禾的掃帚忽然橫住你的踝。這一次是意。他眼不抬，袖裡有紙，紙邊硌出白。',
-        '「他對冊去了。」氣音，「衛長老召。茶盞壓著，壓偏了。我掃到。掃到就是窺。窺，死。你保過我。保的人，該把這東西拿走。拿走，別寫我。」',
-        '「我看了一眼。」他說，像認罪，「黃耆下面不是斤兩。是人。你拿走。」他恢復掃。掃得很響。你袖裡多了一頁。頁上的火漆碎了一角。',
-      ],
-      setFlags: { page_reach: 1, page_via_he: 1, inner_unlike: '+1' },
-      next: 'sleeve_read',
-    };
-  }
-  if (f.night_warehouse || f.token_jian) {
-    return {
-      loc: '執法堂·夜',
-      paras: [
-        '你被從通鋪提出來。巡夜的人忽然「想起來」側門虛扣過，庫房有過赤足。想起來的時機，剛好是車走、成串冊合、內門要對缺箱的時候。',
-        '陳肅把那頁拍在你面前。「盤庫缺箱。箱底有薦。薦字，你鞋裡若還有半枚，現在可以放上來。放不放，這頁你都得讀。讀完，告訴我火漆是誰的。」',
-        '活。外門很少被許活。許活的時候，紙就在燈下。燈把印文照得細。細的東西，你夜裡摸過碎渣。碎渣對上整印。整印不像青衡宗庫房那些方印。',
-        '你讀。讀的時候，紙已經在你眼裡。在眼裡，就等於在你能碰到的距離。陳肅不會把讀過的人立刻打死。打死，證人沒了。',
-      ],
-      setFlags: { page_reach: 1, page_via_burst: 1, chen_note: '+2' },
-      next: 'sleeve_read',
-    };
-  }
-  return {
-    loc: '執法堂',
-    paras: [
-      '你被差去執法堂送成串冊的抄本。案上茶涼。陳肅在內門對什麼，遲遲不回。風從窗紙進，把一頁夾在罰冊裡的紙吹出半寸。半寸夠讀題。題是缺箱。',
-      '缺箱那頁自己來。自己來的東西，仍要你決定拿不拿。你拿了。不拿，風會把它吹到下一個人腳邊。你已經看見。',
-    ],
-    setFlags: { page_reach: 1, page_via_wind: 1 },
-    next: 'sleeve_read',
-  };
-};
-
-SCENES.sleeve_read = (state) => {
-  const f = state.flags || {};
-  const extra = [];
-  if (f.inner_unlike) extra.push('阿禾說火漆不是武功能仿的。此刻你懂「不是」有多硬。硬到印文自己不屑於裝成門派。');
-  if (f.player_listed) extra.push('你的名字在備選的鉛筆裡。鉛筆能擦。火漆不能。不能的那一層，把你和車的距離寫成時辰，不是里。');
-  return {
-    loc: '夾道牆根',
-    paras: [
-      '紙比外門的冊薄，比禮單密。上欄硃題：皮。皮下列黃耆、甘草、歸。斤兩清楚。清楚的下面有一行小字：秤可假。籤須真。真籤走外門眼。眼過，即了。',
-      '下欄墨題：骨。骨不寫藥。寫額。秋薦三。加薦二。南邊沈府年例人丁，收骨沉者。銀與人丁同行。同行的意思寫得很乾：人丁抵一筆。',
-      '火漆在紙頭。印文不是「青衡宗執法堂」。紋是一圈極細的、不像刀劍的線，線裡有一個字，字不是武。你唸不出。這字從來沒在拳譜、門規、罰冊上出現過。',
-      '紙尾還有三行。黃耆走皮，人走骨。皮給外門盤。骨給內門簽。簽者衛、核者陳、經手可記內門弟子——下面一個「謝」字，沒寫全。再一行：吐納之耗，歲計在內，勿入外冊。最後一行極淡：車有香。香是府裡的規矩。規矩怪者，勿問。',
-      '小滿的名字在骨欄邊上，新，像剛補。劉三在上一季。下一季空著兩格。空著的格像呼吸。呼吸朝你。',
-      ...extra,
-    ],
-    setFlags: { page_read: 1, inner_unlike: 2, sell_disciple_known: 1 },
-    next: 'sleeve_sides',
-  };
-};
-
-SCENES.sleeve_sides = (state) => {
-  const f = state.flags || {};
-  const north = (f.he_saved || (f.he_bond && !f.he_to_cart))
-    ? '北：階上的掃帚停了。停，是等你把窺還成一個能活的答案。'
-    : '北：空房。空房也能燒紙。燒，沒有人領。';
-  return {
-    loc: '外門夾道盡處',
-    paras: [
-      '紙在袖裡發熱。熱是你的手。手在發抖。抖，不是武。是帳。',
-      '東：執法堂方向，陳肅回案的步子。步子不疾。不疾的人，知道香盡或茶涼之後，紙該在或不在。',
-      '西：側門銀杏，窗紙又動。動，是謝承淵等你的去處。等的時間有限。有限的溫潤會變薄。',
-      north,
-      '三方都要這頁。你只有一頁。一頁不能撕成三份——撕了，火漆死。火漆死，憑據就變成外門的嘴。嘴，陳肅聽過，謝承淵攬過，衛正言不聽。',
-    ],
-    next: 'sleeve_choice',
-  };
-};
-
-SCENES.sleeve_choice = () => ({
-  loc: '外門夾道盡處',
-  paras: [
-    '你要不要，是這一選。選完仍不是結局。是把皮骨放進誰的袖。袖會變成門。',
+    '殘頁、牙牌、老人的「清繳」、禁林的火漆，終於能對上。滅門不是匪。是門裡的字。清繳。繳的是人，是譜，是不聽話的骨。',
+    '青衡觀的饅頭仍熱。熱的下面是宗。外門是臉。臉要笑。刀在冊上。這一角真相，你信誰。',
   ],
   choices: [
-    { text: '交給謝承淵', setFlags: { page_to_xie: 1, xie_night_call: 1, climb_lean: '+1', xie_hold: '+2' }, to: 'sleeve_xie' },
-    { text: '交給陳肅', setFlags: { page_to_chen: 1, chen_night_call: 1, chen_note: '+1', reveal_lean: '+1' }, to: 'sleeve_chen' },
-    { text: '燒掉', setFlags: { page_burn: 1, he_door_nudge: 1 }, to: 'sleeve_burn' },
-    { text: '自己藏', setFlags: { page_hide: 1, reveal_lean: '+1', escape_lean: '+1', risk: '+2' }, to: 'sleeve_hide' },
+    { text: '信殘頁', setFlags: { c34: 'page', purge_known: 1, reveal_lean: '+1' }, to: 'c34_out' },
+    { text: '去問衛正言', setFlags: { c34: 'wei', met_wei: 1, climb_lean: '+1' }, to: 'c34_out' },
+    { text: '去問謝承淵', setFlags: { c34: 'xie', met_xie: 1, flee_lean: '+1' }, to: 'c34_out' },
   ],
 });
-
-SCENES.sleeve_xie = () => ({
-  loc: '內門側門',
-  paras: [
-    '你把紙從袖裡遞進窗縫。窗縫收紙的手指淨。淨的手指在火漆上停了一停。停，是他看見印文不像門派。他不驚。不驚的人，見過。',
-    '「聰明。」他說，「吐納那一行，你當沒看見。當沒看見，才能活到我把記過塗掉。」他把一截新繩墜下來。「今夜側門裡有差。差不是掃葉。聽用。聽用的人，別帶第三人。」',
-    '聽用。紙交出去了。骨欄裡的你——若有——仍在他手裡。東邊陳肅的步子到了空案。空案會怒。怒不會當夜傳到側門。他說明夜會開一條縫。縫，是下一章。',
-  ],
-  next: 'sleeve_night',
-});
-
-SCENES.sleeve_chen = () => ({
-  loc: '執法堂',
-  paras: [
-    '你把紙送到執法堂案。陳肅看火漆，不看你。不看，是已經在心裡把你寫成可用。',
-    '「印文。」他問。你說不像武。他「嗯」。「不像，就對了。外門說不像即可。說像什麼，是內門的死。」他把紙袖回去，這一次袖得很深。',
-    '「你立了功。功不記簿。記簿，謝承淵會看見。看見，你先死。死之前，今夜別睡通鋪。執法堂側房有一張凳。凳上的人，凌晨有差。差是聽。聽，不是問。」',
-    '聽。他和謝承淵用同一個字。字下面的門不同。門都會虛掩。你把紙還給刀。刀讓你活到門縫。',
-  ],
-  next: 'sleeve_night',
-});
-
-SCENES.sleeve_burn = (state) => {
-  const he = state.flags.he_saved || (state.flags.he_bond && !state.flags.he_to_cart);
-  if (he) {
-    return {
-      loc: '夾道牆根',
-      paras: [
-        '你把紙塞回他袖裡。「你窺的。你留著。」阿禾的手抖得比你厲害。「我不要。」他仍收下。收下，是因為燒要火。火在執法堂階上太顯。',
-        '「那我們燒。」他忽然說。兩個人在夾道牆根，用偷來的灶火。紙著得快。火漆先臭。臭裡有一點甜，甜得像車上那香。灰被他掃進葉裡。',
-        '燒完，他說：「今夜別睡。我在庫房那向看見門。內門的門。門不該開。開了一條。你要揭，看門。你要走，門是近路。你要爬——」他搖頭，「爬的人不要灰。你已經是灰了。」',
-      ],
-      setFlags: { he_bond: '+1', he_door_nudge: 1 },
-      next: 'sleeve_night',
-    };
-  }
-  return {
-    loc: '筍乾小房',
-    paras: [
-      '你找不到活的袖。空房裡筍乾甜。你在灶下燒。燒的時候沒有第二個人見證。灰是你的。灰不能揭。灰能讓三方都暫時空一次手。',
-      '燒的臭裡仍有甜。你想起小滿的新鞋。鞋不在灰裡。鞋在南邊。南邊的香和火漆的臭，不是兩種東西。灶下有個廚役嚇了一跳，沒問。沒問，是成串之後外門的學問。',
-    ],
-    next: 'sleeve_night',
-  };
+SCENES.c34_out = (state) => {
+  const k = state.flags.c34;
+  const paras = k === 'page'
+    ? ['你把殘頁對著側門的光。香、火漆、清繳，同一種苦。沒有人替你簽字。簽字的是你自己的眼。', '阿禾聽你說完，沒勸你忘。「揭，要有比嘴硬的東西。你現在有紙。紙怕火。」']
+    : k === 'wei'
+      ? ['衛正言聽完，鬚仍整齊。「清繳是先朝的話。外門勿傳。傳，則亂。」他拍你的肩，力道像父。', '父的掌，有時按人。你退出時，看見他袖口那點紅，仍在。']
+      : ['謝承淵沉默很久。「有些箱，不是藥。我攬過，因為不攬，死的是外門。」他沒否認清繳。', '「你要活，把這兩個字咽回去。」他給你茶，仍不給你盞。傘又撐了一角。'];
+  return { loc: k === 'wei' ? '內廊·衛正言' : k === 'xie' ? '側廊·謝承淵' : '側門·清繳', paras, setFlags: { purge_known: 1 }, next: '__hub_done__' };
 };
 
-SCENES.sleeve_hide = (state) => {
-  const extra = [];
-  if (state.flags.xie_rope || state.flags.page_via_xie) extra.push('西邊還在等。你違繩。');
-  if (state.flags.page_via_chen || state.flags.chen_buy) extra.push('東邊香將盡。你違香。');
-  return {
-    loc: '外門通鋪',
-    paras: [
-      '你把紙貼著牙牌——若有——或縫進舊鞋幫。鞋幫是外門唯一不被內門隨時脫的地方。',
-      '三方都會空。空的人會把網收得更小。小網的中心是你。中心有一頁皮骨。皮骨能換路，也能換死。死很合法。合法的死，衛正言可以再可嘉一次。',
-      '你把鞋穿好。硌，是憑據還活。活的憑據讓呼吸自己變淺。淺，像紙尾那行勿入外冊的吐納。你不想學。學，就是跨進另一種不像拳腳的東西。',
-      ...extra,
-    ],
-    next: 'sleeve_night',
-  };
-};
-
-SCENES.sleeve_night = () => ({
-  loc: '外門夾道·夜',
+SCENES.c35 = () => ({
+  loc: '外門·三方',
   paras: [
-    '紙或在謝袖，或在陳袖，或成灰，或在你鞋幫。無論在哪，你都讀過。讀過的人睡不著。',
-    '夾道裡有人不是巡夜——步子急，像要趕在核名之前把什麼東西換走。你喝了一聲。對方把燈一橫。夜鬥，值事房只問燈還在不在。',
-  ],
-  battle: { enemyId: 'patrol', onWin: 'sleeve_win', onLose: 'sleeve_lose' },
-});
-
-SCENES.sleeve_win = () => ({
-  loc: '外門夾道·夜',
-  paras: [
-    '巡夜捂著肋，燈籠滾到牆根。他沒喊第二聲——喊了，自己也要解釋為何夜裡攔一個剛讀過帳的人。',
-    '你退回通鋪那向。黑瓦盡處，內門有一點不該有的光。不該存在的光，和火漆是一類。',
-  ],
-  setFlags: { won_sleeve_night: 1 },
-  next: 'sleeve_close',
-});
-
-SCENES.sleeve_lose = () => ({
-  loc: '外門夾道·夜',
-  paras: [
-    '你跪在石上。巡夜懶得報全。「外門夜鬥，記一筆。」他沒提紙。提了，他自己的路也要上冊。',
-    '氣血只剩一絲。黑瓦盡處那點光仍在。光不等你站穩。',
-  ],
-  setFlags: { lost_sleeve_night: 1 },
-  next: 'sleeve_close',
-});
-
-SCENES.sleeve_close = (state) => {
-  const f = state.flags || {};
-  let call = '你自己會去。去，因為黑瓦盡處那點光不該存在。不該存在的光，和火漆是一類。第三次，門會虛掩。';
-  if (f.xie_night_call) call = '燈盡前，雜役在門外咳。咳是敲門。「師兄說：亥時。側門。聽用。別帶人口。」';
-  else if (f.chen_night_call) call = '執法堂側房的凳硬。硬的人被告知：「亥時。跟著。別出聲。出聲，紙作廢，你也作廢。」';
-  else if (f.he_door_nudge) call = '阿禾門縫裡一隻眼。「我帶你去。去看。看完，你自己決定跨不跨。我只到門。門裡我不敢。」';
-  return {
-    loc: '外門通鋪',
-    paras: [
-      '暮鼓過了。山門關。關的是正門。正門關了，側門那類地方才開始像路。',
-      call,
-      '你起身。腿上有罰站的舊繭，有下山的勒，有成串的汗。繭勒汗都還在江湖。江湖的下一息，會看見一種呼吸，不像拳腳。',
-      '三條路已有腳印。紙已有去處。門還未寫。未寫的門，亥時虛掩。',
-    ],
-    setFlags: { sleeve_done: 1 },
-    choices: [
-      { text: '回外門', to: '__hub_ajar__' },
-    ],
-  };
-};
-
-
-SCENES.ajar = (state) => {
-  const f = state.flags || {};
-  if (f.xie_night_call) {
-    return {
-      loc: '內門側門·亥時',
-      paras: [
-        '亥時的鼓比寅時更短。短到像不承認夜裡還有人該醒。雜役不提燈。不提，是燈會把聽用寫成擅入。他只在前頭用袖擋過巡夜的轉角。',
-        '側門兩棵銀杏的葉幾乎光了。門環仍不含。雜役不叩。他對你做一個「入」的口型，又立刻改成「停」。停在門邊。聽用不是進。聽，是把耳借給裡面的人。',
-        '謝承淵在門內側的暗裡。青袍這一次不是淨到無塵——暗把塵藏了。他的聲仍溫，溫得像怕驚了那點白。',
-        '「看就好。別出聲。出聲，他們的氣會斷。氣斷，算你的過。跨，是另一種薦。薦進這門，比南邊更難回來。你聽用。聽用的人，站門檻外。」',
-        '光從內門禁地那一側漏。漏得很細。細的光不黃。黃是燈籠。這光白，白得像把月光從人皮膚底下翻出來。',
-      ],
-      setFlags: { arrive_xie: 1 },
-      next: 'ajar_veil',
-    };
-  }
-  if (f.he_door_nudge || (f.he_saved && (f.page_to_he || f.page_burn))) {
-    return {
-      loc: '內門禁地夾道·亥時',
-      paras: [
-        '阿禾走你前面。掃階五日的灰還在他褲腳。灰不發光。他的手冷，冷過井水。到了光能沾袖的地方，他停。',
-        '「我只到門。」他說，像夜裡第一次給你饃那樣怕，「你看。看完告訴我，是不是不像。不像，我就沒瘋。沒瘋，車也許還要。我只是想在上車之前，知道自己看見過真的。」',
-        '他不跨。他連門的影子都避。避完，把位置讓給你。「衛長老在裡頭。」阿禾氣音，「背對著。背對著最好。最好別讓他轉。」',
-        '光白。白得不像燈籠。你說不上來。說不上來的東西，你遇過：側門的香，火漆的細紋，吐納勿入外冊。都在這一點白裡聚齊。',
-      ],
-      setFlags: { arrive_he: 1 },
-      next: 'ajar_veil',
-    };
-  }
-  if (f.chen_night_call) {
-    return {
-      loc: '執法堂鼠道·亥時',
-      paras: [
-        '執法堂側房的凳把你的腿坐麻。麻著被他領起。陳肅夜行無靴聲。他不走側門那兩棵銀杏。他走更窄的一條，像執法堂自己養的鼠道。鼠道盡頭仍是那點白。',
-        '「看清。」他不溫，「看清不是跨。跨了，我的冊寫不了你。寫不了，你就是裡頭的人。裡頭的人，外門的罰夠不到。我今夜只要你的眼。眼，回去寫。寫，別寫像什麼。寫：不像拳腳。夠了。」',
-        '他停在比門更遠的暗裡。遠，是要留自己不在場的退路。退路留給可嘉的人——衛正言若轉過身，陳肅可以說自己在巡。你是跟差。跟差，又一次。',
-      ],
-      setFlags: { arrive_chen: 1 },
-      next: 'ajar_veil',
-    };
-  }
-  return {
-    loc: '內門邊門·亥時',
-    paras: [
-      '沒有人領。領的是鞋幫裡的硌。硌是牙牌，是撕名，是那頁帳，或只是讀過之後留在眼裡的印文。印文不像武。不像武的光，現在在黑瓦腳下。',
-      '夾道的巡夜在另一頭。你數呼吸。數到三十，像掃銀杏那次。三十後，門在。門不該開。開了一條縫。縫寬如一指。一指夠眼。夠眼，就夠下一選。',
-      '成串之後，正門夜夜加人。加人的是防叛。防叛的人看正門，不看禁地邊門。邊門是內門的近路，近路通向後山坡。後山坡下有溪。溪能走到鎮。你不是已經決定逃。你只是把近路踩在腳下。',
-    ],
-    setFlags: { arrive_self: 1 },
-    next: 'ajar_veil',
-  };
-};
-
-SCENES.ajar_veil = (state) => {
-  const f = state.flags || {};
-  const extra = [];
-  if ((f.inner_unlike || 0) >= 2) extra.push('火漆印文那種不像刀劍的線，和鎖骨上的淡白，是一類。一類的東西，外門的掃帚夠不到。夠不到，才叫內門。');
-  if (f.player_listed) extra.push('你忽然明白備選也許不是沈府。沈府是骨的一條去處。這廳是另一條。另一條也叫薦。謝承淵說跨是另一種薦。另一種，回來更難。');
-  if (f.xiao_gone) extra.push('廳側有一排極小的牌。牌上有字，字小，你認不全。不全裡有一個「滿」的邊。邊也許是錯覺。錯覺讓牙發酸。酸，是車上那雙新鞋沒有走進這廳。這廳要的是能把氣吐得無聲的人。小滿缺牙，漏風。漏風的人，府裡收。廳裡不收。');
-  return {
-    loc: '內門傳功側室·門縫',
-    paras: [
-      '你的眼貼進縫。裡面沒有木樁。沒有拳。沒有喝聲。今夜無響。無響比罰站更緊。',
-      '三五個人站在廳心。站不是馬步。馬步會抖。他們不抖。胸起得極慢，慢到你以為停了。沒停。氣從鼻入，入得很深。吐的時候，喉不響。不響的吐納，帳上寫過：歲計在內，勿入外冊。',
-      '鎖骨那一條淡白，隨吸遊走。遊到內腕，又沒。這不是汗，不是燈油。燈油不會沿著經脈那種位置走。香是側門那種。把一件穿了很久的衣從封閉的箱子裡拿出。甜。甜過車上的簾縫。',
-      '廳盡頭。青衣。背對門。鬚的輪廓極齊。衛正言。他不轉身。不轉身，像這廳的香、這廳的白、這廳的無聲，都要先經過他的背，才能算數。白日他把薦冊點頭，把成串可嘉。夜裡把背留給你。',
-      ...extra,
-      '你的手碰到門。門不沉。不沉，是有人從裡把閂故意不扣。不扣，給聽用的。給鼠道的。給逃的近路。給自己摸來的人。門在等選擇。',
-    ],
-    next: 'ajar_choice',
-  };
-};
-
-SCENES.ajar_choice = () => ({
-  loc: '內門傳功側室·門檻',
-  paras: [
-    '手在門上。門上有一點蹭掉的火漆，紅得發黑，與庫房空架、與側門檻，像一家。一家的紅，從缺箱走到今夜。今夜還夠你做一次。做完，第一幕停。',
-    '把門的內門雜役在縫外半步。他不是聽用的。他是攔的。攔，不論你跨、合、報、逃。',
+    '同一日。陳肅召你核冊。謝承淵使人來請安。衛正言的雜役說長老有話給外門可教者。',
+    '三方逼近。不是巧。是篩。篩還能站在誰的影子裡。你見誰。',
   ],
   choices: [
-    { text: '跨進去', setFlags: { step_in: 1, climb_lean: '+1', reveal_lean: '+1' }, to: 'ajar_step' },
-    { text: '把門輕輕合上', setFlags: { close_door: 1, willful_blind: '+1', safe: '+1' }, to: 'ajar_close' },
-    { text: '去舉報', setFlags: { report_night: 1, reveal_lean: '+2' }, to: 'ajar_report' },
-    { text: '連夜逃山', setFlags: { flee_night: 1, escape_lean: '+2' }, to: 'ajar_flee' },
+    { text: '見陳肅', setFlags: { c35: 'chen', met_chen: 1, climb_lean: '+1' }, to: 'c35_out' },
+    { text: '見謝承淵', setFlags: { c35: 'xie', met_xie: 1, flee_lean: '+1' }, to: 'c35_out' },
+    { text: '見衛正言', setFlags: { c35: 'wei', met_wei: 1, reveal_lean: '+1' }, to: 'c35_out' },
   ],
 });
-
-SCENES.ajar_step = (state) => {
-  const f = state.flags || {};
-  const extra = f.arrive_xie
-    ? '謝承淵的手在暗裡抓過你的袖，沒抓住。他低聲只有半個字，不成句。不成句，是怕斷別人的氣。'
-    : f.arrive_chen
-      ? '遠暗裡那個人不會跟。不跟，是冊寫不了跨過的人。你聽見他退。退，是把你從跟差裡除名。'
-      : f.arrive_he
-        ? '阿禾不進。他的灰停在光外。光外有人把牙咬響。響是江湖。江湖被你留在門後。'
-        : '你沒有傘。沒有冊。沒有第二個人的呼吸。你只有一隻腳。';
-  return {
-    loc: '內門傳功側室·門檻',
-    paras: [
-      '你把縫推寬。寬過一指。寬的那一聲，極輕。輕，廳裡仍有人眼皮動了。動，沒有停氣。氣比你的腳重要。',
-      extra,
-      '你的前腳踏上門檻。檻涼。涼是木頭。木頭後面是淡白、是無聲、是衛正言的背。背不轉。不轉，像准。准不是收。收要手續。這廳的手續是呼吸。呼吸你還不會。不會的人停在檻上。',
-      '把門的人已經上來。上來，是要把你搡回檻外。勝敗都不讓你成為裡頭的人。裡頭的人，第一幕不寫。',
-    ],
-    next: 'ajar_gate',
-  };
+SCENES.c35_out = (state) => {
+  const k = state.flags.c35;
+  const paras = k === 'chen'
+    ? ['陳肅把薄冊翻到你名。「可薦。可核。可除。三個字我都有筆。」他看你選哪一支筆。', '你沒選。他已經把「可核」點上。點上的人，離刀近，離地也近。']
+    : k === 'xie'
+      ? ['謝承淵說：「別見另外兩位。見了，你就是兩邊的人。兩邊的人，陳執法最厭。」', '他把一封素箋塞給你：「明日側門。有事，我擔。」擔了太多次。多次的擔，像網。']
+      : ['衛正言在內廊等你。燈亮。「你那夜沒死，是青衡的氣。氣要用在正處。」', '他說正處的時候，你想起火。想起青袍無灰。他的袍，今晚也無灰。'];
+  return { loc: k === 'chen' ? '值事房·陳肅' : k === 'xie' ? '側廊·謝承淵' : '內廊·衛正言', paras, next: '__hub_done__' };
 };
 
-SCENES.ajar_close = (state) => {
-  const f = state.flags || {};
-  const extra = f.arrive_xie
-    ? '暗裡那人幾乎滿意。「懂分寸。」分寸是他的字。字把你留在繩的這一側。'
-    : f.arrive_he
-      ? '阿禾的肩鬆了。鬆完又緊。「不像。」他說，「走。看見過，就夠我不是瘋。車來之前，我們當沒這條縫。」'
-      : f.arrive_chen
-        ? '遠暗裡等你的眼。眼看見你合門。他要的不像拳腳，你仍可以寫。能止的人，執法堂留。留，是另一截繩。'
-        : '你的手離開門。門仍虛掩。虛掩裡衛正言的背不轉。';
-  return {
-    loc: '內門傳功側室·門檻',
-    paras: [
-      '你沒推。你把縫往回帶。帶得很輕。輕，是怕響。怕響，是還把廳裡的氣當成能被外門傷害的東西。當成，就是已經信了不像。信了，仍合上。',
-      '門不到底。閂本來就不扣。你合上的是風。風仍從縫裡漏一線白。線比一指細。細，仍虛掩。你不能把它關死。關死要裡頭的人扣閂。裡頭的人不扣。',
-      extra,
-      '把門的人仍攔你。攔一個合門的外門，像攔一個看過不該看的人。看過，就要打。打完，仍是外門。',
-    ],
-    next: 'ajar_gate',
-  };
-};
-
-SCENES.ajar_report = (state) => {
-  const f = state.flags || {};
-  const extra = f.arrive_chen
-    ? '路極短。短到只是退回他的暗。「不像拳腳。」你說。他點頭。「夠。回。你今夜沒在這裡。沒在，才能活到我對完。」'
-    : '你要穿過夾道去執法堂。執法堂夜裡有燈。燈下未必有陳肅。未必有的人，你仍要去。去，是把看見交出去。側門那截繩若還在腕間，繩會勒。';
-  return {
-    loc: '內門夾道',
-    paras: [
-      '你離開縫。離開的時候門仍開著一指。一指留給別人。你把眼帶走。帶走的眼要交給冊。',
-      extra,
-      '衛正言的背在你走時仍不轉。不轉，像門規不接受外門的舉報。不接受，舉報仍能寫。寫在陳肅的薄冊上。薄冊剪過成串。下一刀要不要剪內門，第一幕不寫完。',
-      '把門的人攔住退路。「看過的，不准走。」不准走，是打。打完，你仍要把眼帶去冊。冊在門檻這一側。',
-    ],
-    next: 'ajar_gate',
-  };
-};
-
-SCENES.ajar_flee = (state) => {
-  const f = state.flags || {};
-  const extra = f.arrive_xie
-    ? '袖在暗裡空抓。空抓的人不能喊。喊斷氣。氣比你金貴。你比氣賤，所以跑得成。'
-    : f.arrive_he
-      ? '阿禾不跟。不跟，是他還要掃階。他看你沒入後坡，氣音極短：「別寄月例。寄，他們找到我。」'
-      : '近路在門的另一側。另一側有石階，階下有後坡，坡下有溪。溪能走到鎮。鎮有鹼，有不管人的天。天不認得陳肅的冊。不認得，仍認得叛。';
-  return {
-    loc: '內門邊門·後坡',
-    paras: [
-      extra,
-      '你經過虛掩的門。門裡的淡白在餘光裡一閃。一閃，像要你跨。你不跨。不跨，不是合上。是把這扇門當成抄近路時必須經過的一幅畫。畫裡衛正言的背。背不追。',
-      '你的手沒推門，沒合門。門在側光裡仍是一指。一指在你背後。把門的人從縫裡閃出來，攔的是逃，不是跨。攔，是打。打完，石階還在。石階以下，不寫。',
-    ],
-    next: 'ajar_gate',
-  };
-};
-
-SCENES.ajar_gate = () => ({
-  loc: '虛掩的門',
+SCENES.c36 = () => ({
+  loc: '值事房·薦冊',
   paras: [
-    '把門的內門擋在縫前。他不進廳。廳裡的氣比你金貴。他把你當一聲會斷氣的雜。功法在腰。這一場不論輸贏，都不讓你變成裡頭的人。',
+    '你的名進了備選薦冊。不是小滿那種灶房邊，是正薦旁邊的備。備，就是下一輛車。',
+    '陳肅把冊攤開，硃筆懸著。「求劃，求寫，替人說，或沉默。外門少有人自己開口。開口的，我聽。」阿禾若還在，他的名不在這頁。小滿的名在邊上，像舊草鞋。',
   ],
-  battle: { enemyId: 'keeper', onWin: 'ajar_win', onLose: 'ajar_lose' },
+  setFlags: { player_listed: 1, met_chen: 1 },
+  choices: [
+    { text: '求劃掉', setFlags: { c36: 'cut', flee_lean: '+1' }, to: 'c36_out' },
+    { text: '求寫上正薦', setFlags: { c36: 'up', player_zheng: 1, climb_lean: '+1' }, to: 'c36_out' },
+    { text: '替阿禾說', setFlags: { c36: 'he', reveal_lean: '+1' }, to: 'c36_out' },
+  ],
 });
+SCENES.c36_out = (state) => {
+  const k = state.flags.c36;
+  const paras = k === 'cut'
+    ? ['「劃掉。」陳肅看你，像看無骨，又像看還想活的。「劃了，仍在我眼裡。」筆尖走。你的名淡了，沒消失。', '逃的第一步，常是求人不寫。求人的逃，仍在冊上。']
+    : k === 'up'
+      ? ['「寫上。」硃砂落。正薦。衛正言後日會看見這頁。看見，就是被選。', '阿禾若聽見，會把饅頭塞進你手裡，說你瘋了。瘋，是往上。']
+      : ['「阿禾不是黨。」你說。陳肅筆尖在阿禾空著的格上停。「你用自己的備選換他的活？」他沒答應。也沒拒絕。', '次日阿禾的掃階罰滿了。他還在。你的名更顯。顯給誰看，你知道。'];
+  return { loc: '值事房·陳肅', paras, next: '__hub_done__' };
+};
 
-SCENES.ajar_win = () => ({
-  loc: '虛掩的門',
+SCENES.c37 = () => ({
+  loc: '內門虛掩',
   paras: [
-    '把門的人退了半步。燈沒滅。他沒喊——喊了，裡頭要問為什麼一個外門能把他搡開。外門的沉默，內門也用。',
-    '門仍虛掩。虛掩裡衛正言的背不轉。你沒有再踏第二隻腳。第二隻腳是後面的字。後面的字今夜不寫。',
+    '內門又虛掩。這次不是夜風。是有人要你看見，或要你死在看見裡。',
+    '縫裡有香，有數名的聲音，有青袍一角。阿禾在外庭假裝掃地，掃得極響，像給你打掩。探，聽，還是叫人。',
   ],
-  setFlags: { won_keeper: 1 },
-  next: 'ajar_end',
+  choices: [
+    { text: '探進去', setFlags: { c37: 'in', reveal_lean: '+1' }, to: 'c37_out' },
+    { text: '在檻外聽', setFlags: { c37: 'listen', climb_lean: '+1' }, to: 'c37_out' },
+    { text: '叫阿禾一起', setFlags: { c37: 'he', he_bond: 1, flee_lean: '+1' }, to: 'c37_out' },
+  ],
 });
+SCENES.c37_out = (state) => {
+  const k = state.flags.c37;
+  let paras;
+  if (k === 'in') paras = ['你側身進縫。裡頭在點「可繳」的名。有舊姓的偏旁。有外門的職。沒有饅頭。', '有人回頭。你退。退的時候衣角沾了香灰。灰的味，是滅門夜的味。'];
+  else if (k === 'listen') paras = ['你貼門。聽壁息的路數用在這兒。裡頭說：「外門備選，過篩。篩剩的，可點。」點這個字，你肚子裡的熱應了一下。', '你沒進。聽已經夠把人變成證。證還不是揭。'];
+  else if (state.flags.he_to_cart) paras = ['你回頭。夾道空。阿禾在車上。你一個人聽門縫。門縫不認人。', '你把響帚的活自己做了。做完，縫還在。'];
+  else paras = ['阿禾進來半步，臉白。「別再往裡。裡頭在點人。」他拽你袖。你們退出。', '兩個人的腳印在檻外。成串的證據。也是成串的活。'];
+  return { loc: k === 'he' ? '內門虛掩·阿禾' : '內門虛掩', paras, setFlags: { inner_ajar: 1 }, next: '__hub_done__' };
+};
 
-SCENES.ajar_lose = () => ({
-  loc: '虛掩的門',
+SCENES.c38 = () => ({
+  loc: '內門側殿·不像拳腳',
   paras: [
-    '你跪在檻外。把門的人在你肩上拍了拍，像拍一袋米。「記住。門不是給你們開的。」他走了。走，是回去守那一指寬。',
-    '氣血只剩一絲。門仍虛掩。虛掩裡衛正言的背不轉。你沒有再踏第二隻腳。跪過，仍是外門。',
+    '側殿的香、火漆、殘香，三樣擺在一起。不像拳腳。不像外門練的那些。像裁人的儀式。',
+    '滅門夜的香是這一種。庫房箱上的火漆是這一種。衛正言袖口那點紅，也是。收，說，還是裝掃地。',
   ],
-  setFlags: { lost_keeper: 1 },
-  next: 'ajar_end',
+  choices: [
+    { text: '收香灰', setFlags: { c38: 'ash', ash_token: 1, reveal_lean: '+1' }, to: 'c38_out' },
+    { text: '對阿禾說', setFlags: { c38: 'he', he_bond: 1, reveal_lean: '+1' }, to: 'c38_out' },
+    { text: '假裝掃地', setFlags: { c38: 'sweep', climb_lean: '+1' }, to: 'c38_out' },
+  ],
 });
+SCENES.c38_out = (state) => {
+  const k = state.flags.c38;
+  const paras = k === 'ash'
+    ? ['香灰進紙包。紙包進鞋，挨著牙牌。腳心兩塊硌。走起路來像踩著兩種字：薦，與繳。', '不像拳腳的東西，才是這座觀的功法。']
+    : k === 'he'
+      ? ['阿禾聞了香，嘔。「這不是祭神。這是祭冊。」他擦嘴，「你要揭，這味比嘴硬。你要走，把味帶走。你要爬——」他看你，「爬的人穿這香。」', '你們把側殿的灰掃回爐。掃回不是沒有。是暫時。']
+      : ['你掃地。把殘香掃進爐。內門雜役看你一眼，「外門也懂事。」懂事就是把證據當灰。', '灰仍香。香仍在袖口。你裝成掃帚。掃帚有時比人安全。'];
+  return { loc: k === 'he' ? '內門側殿·阿禾' : '內門側殿·不像拳腳', paras, next: '__hub_done__' };
+};
 
-SCENES.ajar_end = (state) => {
-  const f = state.flags || {};
-  let foot = '無論你跨了半步、合了半寸、把眼交給冊、還是把腳交給後山的溪——這一幕都停在門檻。';
-  if (f.step_in) foot = '你跨了半步。半步夠把「往裡」的那一條踩出印。印還濕。濕的門還虛掩——你推寬的縫，沒有在你身後關上。廳未收你。你未飛。你未把印文唸出聲。';
-  else if (f.close_door) foot = '你合了半寸。合過，不等於沒有。三條路仍開。這一息你把腳留在江湖這一側，眼已髒。';
-  else if (f.report_night) foot = '舉報已起筆。人未進廳。背影未轉。門未關死。揭的刀今夜仍短。短，因為長老的背沒轉。';
-  else if (f.flee_night) foot = '人在檻外轉向後山。門仍開。未出鎮，未自由，只是開始跑。逃的腳印濕。濕到石階。石階以下，不寫。';
+SCENES.c39 = () => ({
+  loc: '內門廊·青袍',
+  paras: [
+    '青袍從廊轉出來。裁。滅門夜你見過的那種無灰。這次你看清了鬚。衛正言。最義正的那種正。',
+    '他對你笑，像講法那日。「外門亦是門。你既看見門縫，便該進來，或回去睡覺。」當場揭，跟著走，還是退回觀。',
+  ],
+  setFlags: { met_wei: 1, saw_robe: 1 },
+  choices: [
+    { text: '當場揭', setFlags: { c39: 'call', reveal_lean: '+1' }, to: 'c39_out' },
+    { text: '跟著走', setFlags: { c39: 'follow', climb_lean: '+1' }, to: 'c39_out' },
+    { text: '退回觀', setFlags: { c39: 'back', flee_lean: '+1' }, to: 'c39_out' },
+  ],
+});
+SCENES.c39_out = (state) => {
+  const k = state.flags.c39;
+  const paras = k === 'call'
+    ? ['「那夜的青袍是你。」你說。廊上風停。衛正言仍笑。「孩子的夢，當不得冊。冊上寫的是清繳。清繳合法。」', '合法兩個字比刀快。他走過你身邊，袖口那點紅擦過你腕。像認。像警告。']
+    : k === 'follow'
+      ? ['你跟著。他帶你看內門的燈。「燈要有人添。添燈的人，不問燈下有沒有血。」', '他把一枚素箋給你：「可教。」可教就是可點。你把箋收下。收下不是跪。是還沒逃。']
+      : ['你退。退回外門土階。阿禾在銀杏下等，「看見誰了。」你沒說。說了，他要成串。', '青袍在廊裡沒追。不追的人，更像已經把你寫進某一頁。'];
+  return { loc: '內門廊·衛正言', paras, setFlags: { robe_is_wei: 1 }, next: '__hub_done__' };
+};
+
+SCENES.c40 = (state) => {
+  const xieLine = (state.flags.xie_hold || 0) > 0 && !state.flags.wei_trust;
   return {
-    loc: '虛掩的門',
-    paras: [
-      foot,
-      '門檻涼。涼的木頭兩邊，一邊是外門的掃、罰、薦、記功、成串；一邊是無聲的呼吸、鎖骨上極淡的白、以及一個不轉身的長老。兩邊都還不是結局。結局要人真正進去，或真正離開山，或真正把印文唸出聲。那些是後面的字。後面的字今夜不寫。',
-      '你仍是青衡宗外門的雜役。或已經不算。不算的理由各異：備選、甚者、耳目、聽用、叛的預備。理由還沒被暮鼓確認。確認要到下一冊。下一冊未開。',
-      '黃耆仍是皮，薦額仍是骨。小滿的格空著。劉三的格空著。阿禾或在階上，或在車上，或在你身後的暗裡。謝承淵的繩或在腕間，或已斷。陳肅的袖或有紙，或有灰。衛正言的背仍正。正的東西，最會吃人。吃人的時候說：按例。按例的時候說：外門亦是門。',
-      '門亦有縫。縫裡有一種不像拳腳的活法。活法你看見了。看見，第一幕就夠了。你不把話說破。說破的名字，外門沒有。沒有的名字，不能寫進罰冊，不能寫進薦匣，不能寫進功簿。只能寫進一扇虛掩的門。',
-      '三條路已有腳印。揭的腳印在冊與縫之間；爬的腳印在繩與檻上；逃的腳印在石階上，濕。腳印都不深。不深，因為第一幕只讓人把路踩開，不讓人走到頭。走到頭要後面的日子。後面的日子不從今夜開始。今夜只把人送到能看見的距離。',
-      '門還虛掩著。外門還在。功法還在腰上。天亮之後，仍要掃，仍可煉，仍要當差。仙道不是這一幕的主題。這一幕的主題是：你還在門外。',
+    loc: xieLine ? '側廊·謝承淵' : '雨廊·衛正言',
+    paras: xieLine ? [
+      '反轉來得不像刀——來得像雨。謝承淵把茶盞放下。「救你入觀的人，不是路遇。是衛長老的令。令上寫：火裡那顆種，可留。」',
+      '「我知情。知情不是下手。下手的人穿青。我穿青，可我那夜不在你家。」他看你，「你要恨，恨令。你要爬，令也能把你托上去。你要走，我不能攔山門——攔了，是叛。」',
+      '雨打廊。仇與恩在同一隻盞裡。',
+    ] : [
+      '反轉來得不像刀——來得像雨。衛正言立在你被救起的那種雨裡，雖然今夜無雨。「撈你的人，是我的令。火裡那顆種，可留。點過的，不可廢。」',
+      '「你當那是路遇。路遇不入冊。入冊的是清繳餘種。」他鬚仍整齊。「恩是真的。仇也是。青衡要骨。骨從火裡揀。」',
+      '你肚子裡那股熱，找到了主人。',
     ],
-    setFlags: { ajar_done: 1, act1_done: 1 },
+    setFlags: { savior_knew: 1, met_wei: 1 },
     choices: [
-      { text: '回外門', to: '__hub_errand__' },
+      { text: '質問', setFlags: { c40: 'ask', reveal_lean: '+1' }, to: 'c40_out' },
+      { text: '還恩', setFlags: { c40: 'owe', climb_lean: '+1' }, to: 'c40_out' },
+      { text: '先走', setFlags: { c40: 'go', flee_lean: '+1' }, to: 'c40_out' },
     ],
   };
 };
+SCENES.c40_out = (state) => {
+  const k = state.flags.c40;
+  const paras = k === 'ask'
+    ? ['「為什麼留我。」他答得正：「因為你能用。能用的，比能殺的貴。」貴這個字，把人做成貨。', '你沒出手。出手是下一章。這一章只把恩撕開，看看裡頭的令。']
+    : k === 'owe'
+      ? ['你低頭。「命是觀的。」他很高興。高興得像講法。「外門亦是門。門要傳。」', '傳，就是你坐上某把椅子之前的那一級。恩把你綁在階上。']
+      : ['你走。雨廊的水濺上你褲腳。沒有人攔。攔會把「叛」寫早。', '先走不是逃成。是把一口氣留到能選的時候。'];
+  return { loc: '雨廊', paras, next: '__hub_done__' };
+};
 
+SCENES.c41 = () => ({
+  loc: '外門通鋪·不可逆',
+  paras: [
+    '第一次不可逆。燈油還剩一截。阿禾若在，會把冷饃掰給你。不在，饃也在枕邊，不知誰放的。',
+    '揭，是把清繳、青袍、點種，送到能聽見的耳朵——或自己當耳朵。爬，是把令當成梯，把椅子當成命。逃，是把真相帶出山門，不當英雄，當證人。',
+    '選了，就不能用「還沒選」活。',
+  ],
+  choices: [
+    { text: '揭', setFlags: { c41: 'reveal', path_reveal: 1, reveal_lean: '+5' }, to: 'c41_out' },
+    { text: '爬', setFlags: { c41: 'climb', path_climb: 1, climb_lean: '+5' }, to: 'c41_out' },
+    { text: '逃', setFlags: { c41: 'flee', path_flee: 1, flee_lean: '+5' }, to: 'c41_out' },
+  ],
+});
+SCENES.c41_out = (state) => {
+  const k = state.flags.c41;
+  const line = k === 'reveal' ? '你把殘頁、牙牌、香灰，並成一疊。揭不是今晚就喊。是從此只往能喊的地方走。' : k === 'climb' ? '你把素箋放在功法冊最上。爬不是今晚就坐椅。是從此把令當成路。' : '你把包袱的繩先量好。逃不是今晚就翻山。是從此把出口當呼吸。';
+  return { loc: '外門通鋪·不可逆', paras: [line, '寅時還會來。來了，仍要當差。差事會把你送到分叉那一頁。'], next: '__hub_done__' };
+};
+
+SCENES.c42 = () => ({
+  loc: '試煉坪·仙路',
+  paras: [
+    '仙路試煉。名目漂亮。實為篩人。把門的內門立在坪上：「過者可入內聽氣。不過者，外門終老。逃者，叛。」',
+    '薦冊上有名的，可以走中門。無名的，硬闖或翻牆。牆有刺。中門有香。篩開始了。',
+  ],
+  choices: [
+    { text: '硬闖', setFlags: { c42: 'force', reveal_lean: '+1' }, to: 'c42_go' },
+    { text: '用薦名走中門', setFlags: { c42: 'name', climb_lean: '+1' }, to: 'c42_go' },
+    { text: '翻牆', setFlags: { c42: 'wall', flee_lean: '+1' }, to: 'c42_go' },
+  ],
+});
+SCENES.c42_go = (state) => {
+  const k = state.flags.c42;
+  const line = k === 'name' ? '中門仍要試手。薦名不是免死。' : k === 'wall' ? '牆沒翻成。把門的內門已經攔在刺下。' : '把門的內門擋在你面前。「這門不是給外門開的。」';
+  return { loc: '試煉坪·仙路', paras: [line], battle: { enemyId: 'keeper', onWin: 'c42_win', onLose: 'c42_lose' } };
+};
+SCENES.c42_win = () => ({ loc: '試煉坪·仙路', paras: ['把門的內門退了。他沒倒。倒了要填內冊。他只說：「過。過了，裡頭的氣會認你。」', '氣認你，是因為那夜的點。你走進燈裡。燈下有血的味道，很淡，像香。'], setFlags: { trial_pass: 1 }, next: '__hub_done__' });
+SCENES.c42_lose = () => ({ loc: '試煉坪·仙路', paras: ['你跪在坪上。氣血一絲。把門的人懶得填死。「外門終老。記住。」', '終老不是結束。是把你放回掃帚。掃帚仍能揭，能爬，能逃。只是更慢。'], setFlags: { trial_fail: 1 }, next: '__hub_done__' });
+
+SCENES.c43 = () => ({
+  loc: '禁地·被點',
+  paras: [
+    '裡頭的氣告訴你一件事，或謝承淵終於說破，或你自己在脈上摸到那顆不屬於你的熱：潛力不是天賜。是當夜被人「點」過。',
+    '點，是清繳的副產品。留種。種要長在觀裡，長成骨，長成椅，長成下一場清繳的筆。恨，用完，還是卸掉。',
+  ],
+  choices: [
+    { text: '恨點你的人', setFlags: { c43: 'hate', reveal_lean: '+1' }, to: 'c43_out' },
+    { text: '把點用完', setFlags: { c43: 'use', climb_lean: '+1' }, to: 'c43_out' },
+    { text: '想把點卸掉', setFlags: { c43: 'shed', flee_lean: '+1' }, to: 'c43_out' },
+  ],
+});
+SCENES.c43_out = (state) => {
+  const k = state.flags.c43;
+  if (k === 'hate') return { loc: '禁地·被點', paras: ['恨讓熱聽話。熱聽話就成刀。刀仍是他們給的。你知道。你仍握。', '阿禾若在，會說：「恨比饅頭頂飽。飽了，別把自己吃掉。」'], effects: { atk: 1 }, next: '__hub_done__' };
+  if (k === 'use') return { loc: '禁地·被點', paras: ['你把點當自己的。當自己的，才爬得上去。上去的人，很少再問種從哪來。', '衛正言會喜歡這種用。喜歡，就是成功。'], effects: { atk: 1, maxHp: 2 }, next: '__hub_done__' };
+  return { loc: '禁地·被點', paras: ['你調息，想把那顆熱吐出去。吐不乾淨。可你吐了。吐了，就不是全給他們用。', '卸不掉的東西，也能不當主人。逃的人，先逃成為兵器。'], effects: { maxMp: 2 }, next: '__hub_done__' };
+};
+
+SCENES.c44 = () => ({
+  loc: '內廊·衛正言',
+  paras: [
+    '仇與恩對折。衛正言立在你面前，像門規。謝承淵在廊外，像傘。陳肅的冊在案上，像刀。',
+    '滅門、撈你、點你、養你、薦你，都是同一隻手的五指。你要報仇，問一句為什麼，還是跪下。',
+  ],
+  setFlags: { met_wei: 1 },
+  choices: [
+    { text: '報仇', setFlags: { c44: 'venge', reveal_lean: '+1' }, to: 'c44_out' },
+    { text: '問一句為什麼', setFlags: { c44: 'why', flee_lean: '+1' }, to: 'c44_out' },
+    { text: '跪下', setFlags: { c44: 'kneel', climb_lean: '+1' }, to: 'c44_out' },
+  ],
+});
+SCENES.c44_out = (state) => {
+  const k = state.flags.c44;
+  const paras = k === 'venge'
+    ? ['你說要報。衛正言點頭，像聽一個孩子說要長大。「報，也要按冊。按冊的報，叫整肅。我可以教你。」', '他把仇收進門規裡。你若跟，仇就變成他的刀。你若不服，下一場才是真報。']
+    : k === 'why'
+      ? ['「為什麼我家。」他答：「因為不聽話的譜，會生不聽話的人。清繳是護門。護門要血。」', '一句夠了。夠你走。夠你揭。夠你把這句帶出山門。他以為為什麼能把人留下。留下的是字，不是你。']
+      : ['你跪。額抵他靴前的青石。他扶你，力道仍像父。「外門亦是門。門要人守。」', '守門的人，有時就是門本身。你起身時，膝蓋上的灰，像印。'];
+  return { loc: '內廊·衛正言', paras, next: '__hub_done__' };
+};
+
+SCENES.c45 = () => ({
+  loc: '執法堂·陳肅',
+  paras: [
+    '陳肅把一本舊冊翻給你看。童年的名在上面。舊姓。火那夜的旁注：可留，已點。硃砂新過一次。',
+    '「我是筆。」他說，不辯。「筆不決定砍誰。筆決定砍得乾不乾淨。你要撕，抄，還是求我劃。」他的眼睛沒有喜怒。像硯。',
+  ],
+  setFlags: { met_chen: 1 },
+  choices: [
+    { text: '撕冊', setFlags: { c45: 'tear', reveal_lean: '+1' }, to: 'c45_out' },
+    { text: '抄一頁', setFlags: { c45: 'copy', page_copy: 1, flee_lean: '+1' }, to: 'c45_out' },
+    { text: '求他劃', setFlags: { c45: 'cut', climb_lean: '+1' }, to: 'c45_out' },
+  ],
+});
+SCENES.c45_out = (state) => {
+  const k = state.flags.c45;
+  const paras = k === 'tear'
+    ? ['紙聲很響。陳肅沒攔。「撕的是抄件。正本在衛長老處。」他幾乎給你一個讚：「至少你動手了。」', '動手比求乾淨。乾淨不是完。完在正本。']
+    : k === 'copy'
+      ? ['你抄。舊姓、可留、已點。陳肅看著你抄，像看人把刀藏進袖。「帶出去，是叛。留在袖裡，是證。」', '你把抄件貼進夾層。逃的人要有紙。揭的人也要。']
+      : ['「劃掉。」他劃了抄件上的名。正本他不碰。「我只能劃我能劃的。這就是筆。」', '你欠他一筆。欠筆的人，常去當下一支筆。'];
+  return { loc: '執法堂·陳肅', paras, next: '__hub_done__' };
+};
+
+SCENES.c46 = () => ({
+  loc: '外門通鋪·終局前夜',
+  paras: [
+    '終局前夜。饅頭冷了。小滿若還在，會把草鞋藏進筐。阿禾若還在，會說：「別一個人。」謝承淵的燈在側門。陳肅的冊合著。衛正言的正言在廊上走動。',
+    '你把三條路收到枕下：約人揭；把把柄交給上層，換椅；打好包袱。明天分叉。今夜只選你把力氣放在哪。',
+  ],
+  choices: [
+    { text: '約人揭', setFlags: { c46: 'reveal', reveal_lean: '+2' }, to: 'c46_out' },
+    { text: '把把柄交上層', setFlags: { c46: 'climb', climb_lean: '+2' }, to: 'c46_out' },
+    { text: '打好包袱', setFlags: { c46: 'flee', flee_lean: '+2' }, to: 'c46_out' },
+  ],
+});
+SCENES.c46_out = (state) => {
+  const k = state.flags.c46;
+  const line = k === 'reveal' ? '你約了還肯聽的人。人數很少。很少也是眾。' : k === 'climb' ? '你把殘頁與牙牌送到該送的袖裡。袖收了，椅就近了。' : '包袱很輕。輕的是衣。重的是紙。紙在貼肉的那一層。';
+  return { loc: '外門通鋪·終局前夜', paras: [line, '鼓還沒響。你睡。不是因為無事。是因為寅時會把人送到第十七次站樁，或第一次真正的門。'], next: '__hub_done__' };
+};
+SCENES.c47 = (state) => {
+  const t = endingTrack(state.flags);
+  if (t === 'reveal') {
+    return {
+      loc: '執法堂階·分叉',
+      paras: [
+        '揭。你把清繳、青袍、點種，當眾攤在執法堂階上。外門有人低頭。內門有人微笑。',
+        '衛正言立在門裡，仍正。「夢與香灰，當不得冊。」陳肅的筆懸著，看你要刀還是要字。把門的人已經下階。對質要過手。',
+      ],
+      choices: [
+        { text: '對質衛正言', setFlags: { c47: 'wei' }, to: 'c47_rev_go' },
+        { text: '逼陳肅下筆', setFlags: { c47: 'chen' }, to: 'c47_rev_go' },
+        { text: '讓外門聽見', setFlags: { c47: 'crowd' }, to: 'c47_rev_go' },
+      ],
+    };
+  }
+  if (t === 'climb') {
+    return {
+      loc: '內門·分叉',
+      paras: [
+        '爬。椅子就在檻內。衛正言要你過最後一門：把外門的舊自己按回去。把門的內門是試，也是祭。',
+        '謝承淵在廊上不攔。不攔就是準。陳肅已經把你的名寫在可教那一欄。怎麼坐上去。',
+      ],
+      choices: [
+        { text: '按門規坐', setFlags: { c47: 'rule' }, to: 'c47_cl_go' },
+        { text: '踩著把柄坐', setFlags: { c47: 'leverage' }, to: 'c47_cl_go' },
+        { text: '先把攔路的人打退', setFlags: { c47: 'force' }, to: 'c47_cl_go' },
+      ],
+    };
+  }
+  return {
+    loc: '山門·分叉',
+    paras: [
+      '逃。包袱在肩。山門那一側的燈亮。巡夜與把門的人不會當這是夜風。',
+      '你要帶的是真相：清繳、舊姓、點種。不是功名。阿禾若在，會問你帶不帶他。車若在，你不回頭。怎麼出。',
+    ],
+    choices: [
+      { text: '硬闖山門', setFlags: { c47: 'gate' }, to: 'c47_fl_go' },
+      { text: '走側門銀杏', setFlags: { c47: 'side' }, to: 'c47_fl_go' },
+      { text: '趁虛掩', setFlags: { c47: 'ajar' }, to: 'c47_fl_go' },
+    ],
+  };
+};
+SCENES.c47_rev_go = () => ({ loc: '執法堂階·分叉', paras: ['執法堂弟子下階。成串的喝，這次對著揭的人。衛正言的正言在門裡。'], battle: { enemyId: 'enforcer', onWin: 'c47_win', onLose: 'c47_lose' } });
+SCENES.c47_cl_go = () => ({ loc: '內門·分叉', paras: ['把門的內門攔在椅前。「這門不是給外門開的。除非你不再是外門。」'], battle: { enemyId: 'keeper', onWin: 'c47_win', onLose: 'c47_lose' } });
+SCENES.c47_fl_go = () => ({ loc: '山門·分叉', paras: ['巡夜的燈罩砸過來。「夜禁！帶包袱的，當逃。」逃，在冊上是叛。在你腳下是路。'], battle: { enemyId: 'patrol', onWin: 'c47_win', onLose: 'c47_lose' } });
+SCENES.c47_win = (state) => {
+  const t = endingTrack(state.flags);
+  const line = t === 'reveal'
+    ? '他退了。階上有人聽見清繳。聽見不是完。是開始有縫。衛正言的笑淡了一寸。淡一寸，就夠你走進尾聲。'
+    : t === 'climb'
+      ? '他把路讓開。椅子近了。近得能看見扶手上的舊汗。前人坐過。前人清繳過。現在輪到你的手。'
+      : '燈籠滾在山門下。你跨過檻。檻外的風不香。不香就是活。包袱裡的紙還在。';
+  return { loc: t === 'flee' ? '山門·分叉' : t === 'climb' ? '內門·分叉' : '執法堂階·分叉', paras: [line, '這一場算你。下一場是日子。日子叫尾聲。'], setFlags: { c47_win: 1 }, next: '__hub_done__' };
+};
+SCENES.c47_lose = (state) => {
+  const t = endingTrack(state.flags);
+  const line = t === 'reveal'
+    ? '你跪在階上。可字已經出口。出口的字，跪不回去。衛正言讓人把你拖進尾聲——尾聲仍是揭過的門。'
+    : t === 'climb'
+      ? '你跪。膝上的灰仍像印。印夠了。他們仍讓你坐——坐一個低頭的椅。椅仍是椅。'
+      : '你跪在山門外的土上。氣血一絲。可你已經在門外。門外就是逃成的一半。另一半是路。';
+  return { loc: t === 'flee' ? '山門·分叉' : t === 'climb' ? '內門·分叉' : '執法堂階·分叉', paras: [line, '敗也不把你送回第零章。門規不給結束。尾聲仍要你自己走。'], setFlags: { c47_lose: 1 }, next: '__hub_done__' };
+};
+
+SCENES.c48 = (state) => {
+  const t = endingTrack(state.flags);
+  if (t === 'reveal') {
+    return {
+      loc: '揭開後的門',
+      paras: [
+        '揭開後的門仍是門。青衡觀的饅頭還在蒸。有人罵你多事。有人把劉三的空格用手指描了一遍。陳肅在冊邊寫了「另核」。另核不是勝。是縫。',
+        '衛正言沒倒。正的人很少倒給外門看。他只是少了一寸正。少一寸，外門就能喘氣。你站在門檻上。門開了。開了還要人守——守的是縫，不是謊。',
+      ],
+      choices: [
+        { text: '留下守縫', setFlags: { c48: 'stay' }, to: 'c48_out' },
+        { text: '把紙送到鎮裡', setFlags: { c48: 'town' }, to: 'c48_out' },
+        { text: '回頭看阿禾一眼', setFlags: { c48: 'he' }, to: 'c48_out' },
+      ],
+    };
+  }
+  if (t === 'climb') {
+    return {
+      loc: '那把椅子',
+      paras: [
+        '你坐上那把椅子。扶手有舊汗。汗裡有清繳。有薦。有劉三。有你童年的名。',
+        '外門仍掃地。饅頭仍麥麩。你沒忘自己從哪一階爬上來。忘了，就真成衛正言。謝承淵來揖。陳肅把筆擱在你案上。筆比刀乾淨。你知道乾淨的意思。',
+      ],
+      choices: [
+        { text: '把筆擱下', setFlags: { c48: 'pen' }, to: 'c48_out' },
+        { text: '把外門月例加一寸', setFlags: { c48: 'pay' }, to: 'c48_out' },
+        { text: '看向山門的縫', setFlags: { c48: 'ajar' }, to: 'c48_out' },
+      ],
+    };
+  }
+  return {
+    loc: '山門外的路',
+    paras: [
+      '山門外的路不香。不香就是活。你袖裡有抄件，鞋裡或有牙牌，心裡有清繳兩個字。',
+      '青衡仍在山裡蒸饅頭。有人會把你的名寫成叛。叛比除乾淨，也更死——他們以為。你還在走。走的人沒死。路分三岔。岔仍是你的。',
+    ],
+    choices: [
+      { text: '往鎮東祠', setFlags: { c48: 'shrine' }, to: 'c48_out' },
+      { text: '把紙藏進無人的山', setFlags: { c48: 'hide' }, to: 'c48_out' },
+      { text: '不回頭', setFlags: { c48: 'on' }, to: 'c48_out' },
+    ],
+  };
+};
+SCENES.c48_out = (state) => {
+  const t = endingTrack(state.flags);
+  const k = state.flags.c48;
+  let extra = '日子還長。長的日子叫當差。';
+  if (t === 'reveal') {
+    extra = k === 'town' ? '鎮裡有人開始在井邊說清繳。說，就是縫。' : k === 'he' ? (state.flags.he_to_cart ? '車上沒人。你看的是空。空也是看見。' : '阿禾在銀杏下。饅頭還有半個。他說：「揭完仍要吃。」') : '你守縫。縫裡有風。風比香乾淨。';
+  } else if (t === 'climb') {
+    extra = k === 'pay' ? '外門月例加一寸。一寸買不回劉三。一寸能讓小滿少穿一雙假鞋。' : k === 'ajar' ? '你讓山門仍虛掩。虛掩是你坐上椅子之後還肯留的縫。' : '筆在案上。你暫時不寫除。不寫，就是一種權。';
+  } else {
+    extra = k === 'shrine' ? '祠裡的牌位沒了。你把抄件壓在香灰下。灰認得舊姓。' : k === 'hide' ? '紙進石縫。石縫不入冊。不入冊的東西活得久。' : '你不回頭。山門的燈在背後滅了一盞。滅了也能走。';
+  }
+  return {
+    loc: t === 'reveal' ? '揭開後的門' : t === 'climb' ? '那把椅子' : '山門外的路',
+    paras: [
+      extra,
+      '四十八章到此。沒有偽的第四十九章。外門還在。功法還在腰上。天亮之後，仍可煉，仍要準備下一回差事。門規不給結束。你給自己一個完。完了，仍是你。',
+    ],
+    setFlags: { tale_done: 1 },
+    next: '__hub_done__',
+  };
+};
+
+SCENES.errand = (state) => {
+  const t = endingTrack(state.flags);
+  const tail = t === 'reveal'
+    ? '揭開之後，門仍要人守。你守的是縫，不是謊。'
+    : t === 'climb'
+      ? '椅子是你的了。外門的掃帚還在。你沒忘自己從哪一階爬上來。'
+      : '你已出過山門。有時仍回來當差——像一個人把自己的舊名字借給這座觀。';
+  return {
+    loc: '外門',
+    paras: [
+      '寅時。通鋪潮，土階乾。' + tail,
+      '值事點差：掃外庭、下山兌散、幫灶房搬柴。沒有偽的下一幕。修煉仍可。功法仍在腰上。',
+      '你仍是你。門規仍合法。合法的日子，還要過。',
+    ],
+    choices: [
+      { text: '掃外庭', setFlags: { errand: 'sweep' }, to: 'errand_out' },
+      { text: '下山兌散', setFlags: { errand: 'town' }, to: 'errand_out' },
+      { text: '幫灶房搬柴', setFlags: { errand: 'wood' }, to: 'errand_out' },
+    ],
+  };
+};
+SCENES.errand_out = (state) => {
+  const k = state.flags.errand;
+  if (k === 'town') return { loc: '青陽鎮·下山', paras: ['青陽鎮仍喊戲文。止血散四文。你兌了一包，或只是走一遭。', '舊姓若有人認得，也只點頭。點頭不入冊。'], effects: { hp: 2 }, next: '__hub_done__' };
+  if (k === 'wood') return { loc: '灶房·小滿', paras: ['灶房的柴是濕的。小滿若還在，會把乾的留給你。若不在，筐仍在。', '饅頭焦邊仍甜。甜是外門的。'], effects: { hp: 4 }, next: '__hub_done__' };
+  return { loc: '外庭', paras: ['外庭的葉還是那些葉。掃帚橫掃的路數還在臂骨裡。', '掃完。值事遠遠看了一眼，沒記功，也沒記過。'], effects: { mp: 2 }, next: '__hub_done__' };
+};

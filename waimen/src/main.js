@@ -21,6 +21,7 @@ import {
   realmName,
   expProgress,
 } from './game.js';
+import { hubLoc, hubProse, endingTrack } from './story.js';
 import { SKILLS, PILL, TYPE_LABEL } from './skills.js';
 import { describeIntent } from './combat.js';
 import { writeAuto, readAuto, hasContinue } from './save.js';
@@ -121,8 +122,8 @@ function renderTitle() {
     <div class="title-wrap">
       <div class="seal">青衡</div>
       <h1 class="game-title">外門</h1>
-      <p class="game-sub">文字RPG　第一幕 · 盤庫至虛掩</p>
-      <p class="game-tag">外門雜役 · 煉體 · 門規合法</p>
+      <p class="game-sub">文字RPG　四十八章 · 從滅門到虛掩</p>
+      <p class="game-tag">青衡觀 · 外門雜役 · 煉體</p>
       <div class="menu">
         <button type="button" data-act="new">新的故事</button>
         <button type="button" data-act="cont" ${hasContinue() ? '' : 'disabled'}>繼續</button>
@@ -137,6 +138,8 @@ function renderTitle() {
       state = restored;
       ui = 'play';
       paint();
+    } else {
+      renderCreate();
     }
   };
 }
@@ -260,24 +263,29 @@ function renderHub() {
   const f = state.flags;
   const notes = [];
   notes.push(`第${state.day}日　差事：${missionLabel(state)}`);
-  if (f.he_confides) notes.push('阿禾：還肯說話。');
-  else if (f.he_fear || f.he_grudge) notes.push('阿禾：門關著。');
-  else if (f.willful_blind) notes.push('阿禾：當你沒看見。');
-  if (f.xie_hold || f.xie_cover || f.xie_line) notes.push('謝承淵：傘在，也是繩。');
+  if (f.he_saved) notes.push('阿禾：你保過。他還在。');
+  else if (f.he_to_cart) notes.push('阿禾：車上。');
+  else if (f.he_grudge) notes.push('阿禾：門關著。');
+  else if (f.he_bond || f.met_ahe || f.ch7_done) notes.push('阿禾：饅頭還熱的時候，他是你第一個人。');
+  if (f.met_xie || f.xie_hold) notes.push('謝承淵：傘在，也是繩。');
+  if (f.met_chen || f.ch10_done) notes.push('陳肅：筆比刀乾淨。');
+  if (f.met_wei || f.ch23_done) notes.push('衛正言：外門亦是門。');
+  if (f.xiao_alert) notes.push('小滿：提醒過，鞋仍新。');
+  else if (f.xiao_case) notes.push('小滿：執法堂有案。');
+  else if (f.met_xiaoman || f.ch9_done) notes.push('小滿：灶房的草鞋。');
   if (f.token_jian) notes.push('鞋裡有「薦」。');
   if (f.box_clue) notes.push('箱出庫時比入庫輕。');
   if (f.won_zhao) notes.push('趙師兄退過。掃地掃勢已入冊。');
-  if (f.xiao_alert) notes.push('小滿：提醒過，鞋仍新。');
-  else if (f.xiao_case) notes.push('小滿：執法堂有案。');
-  else if (f.xie_eye) notes.push('小滿：謝師兄在看。');
-  if (f.player_listed) notes.push(f.player_zheng ? '薦冊正薦有你的名。' : '薦冊備選有你的名。');
-  if (f.he_saved) notes.push('阿禾：你保過。他還在。');
-  else if (f.he_to_cart) notes.push('阿禾：車上。');
   if (f.page_hide) notes.push('缺箱那頁在你身上。');
   else if (f.page_to_xie) notes.push('那頁進了謝承淵袖。');
   else if (f.page_to_chen) notes.push('那頁進了陳肅袖。');
-  else if (f.page_burn) notes.push('那頁成了灰。');
-  if (f.act1_done) notes.push('第一幕止於門檻。門仍虛掩。');
+  if (f.old_name_known) notes.push('鎮裡有人認得舊姓。');
+  if (f.purge_known) notes.push('滅門是清繳，不是匪。');
+  if (f.player_listed) notes.push(f.player_zheng ? '薦冊正薦有你的名。' : '薦冊備選有你的名。');
+  if (f.path_reveal) notes.push('路已選：揭。');
+  else if (f.path_climb) notes.push('路已選：爬。');
+  else if (f.path_flee) notes.push('路已選：逃。');
+  if (f.tale_done) notes.push('四十八章已盡。外門還在。');
   const learned = state.learned.map((id) => SKILLS[id]?.name).filter(Boolean).join('、');
   const prog = expProgress(state.stats);
   const expLine = prog.nextAt == null
@@ -286,8 +294,14 @@ function renderHub() {
   const cultHint = state.mode === 'cultivate'
     ? '<p class="muted">煉體長氣血，調息長內力，拆招長勢。一日一煉。</p>'
     : '';
+  const loc = hubLoc(state);
+  const art = artFor('hub', '', { loc });
+  const track = endingTrack(f);
+  const trackHint = f.tale_done
+    ? (track === 'reveal' ? '揭開後的門仍要人守。' : track === 'climb' ? '椅子是你的了。掃帚還在。' : '山門外的路不香。不香就是活。')
+    : '';
   return `
-    ${still('bunk', '青衡宗 · 外門')}
+    ${still(art.bg, loc, art.portrait, art.portraitName)}
     <div class="pane hub-prose">
     ${faceRow(state.flags)}
       <div class="sheet-row">
@@ -296,9 +310,8 @@ function renderHub() {
         <span>攻 ${state.stats.atk}　防 ${state.stats.def}</span>
         <span>已習 ${state.learned.length} 門</span>
       </div>
-      <p>${f.day1_done
-        ? '雜役院。通鋪潮，土階乾。功法冊在枕下，丹藥在袖。門規把日子一寸寸削下去，削得合法。'
-        : '外門晨課。饅頭還有餘溫。銀杏葉金黃，有人把掃帚當槍使。午後才盤庫——阿禾說先把樁站住，別一進門就想內門的事。'}</p>
+      <p>${escapeHtml(hubProse(state))}</p>
+      ${trackHint ? `<p>${escapeHtml(trackHint)}</p>` : ''}
       <p class="journal">${notes.map(escapeHtml).join('<br>')}</p>
       <p class="muted">已習：${escapeHtml(learned || '無')}</p>
       ${cultHint}
@@ -326,7 +339,7 @@ function renderPrep() {
   return `
     ${still(art.bg, '準備')}
     <div class="pane">
-    <p class="muted">出任務前選至多三門功法，可備一包止血散。點名未起，空手出列，先記過。</p>
+    <p class="muted">出任務前選至多三門功法，可備一包止血散。出列前選至多三門功法，可備一包止血散。空手出列，先記過。</p>
     <div class="cards">${cards}</div>
     <button type="button" class="card${pillOn}" data-pill="1" ${canPill ? '' : 'disabled'}>
       <div class="card-top"><b>${PILL.name}</b><em>丹</em></div>

@@ -25,7 +25,7 @@ export function saveSettings(settings) {
 
 export function snapshot(state) {
   return {
-    version: 2,
+    version: 3,
     savedAt: nowIso(),
     gender: state.gender,
     name: state.name,
@@ -57,8 +57,7 @@ export function readAuto() {
     const raw = localStorage.getItem(AUTO);
     if (!raw) return null;
     const data = JSON.parse(raw);
-    if (!data || data.version !== 2) return null;
-    if (!data.stats || !data.sceneId && data.mode === 'story') return data;
+    if (!data) return null;
     return data;
   } catch {
     return null;

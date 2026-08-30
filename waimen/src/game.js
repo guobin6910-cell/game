@@ -1,8 +1,8 @@
 import { START_SKILLS, SKILLS } from './skills.js';
-import { getScene, subst, applyFlags } from './story.js';
+import { getScene, subst, applyFlags, CHAPTERS } from './story.js';
 import { startBattle, applyBattleAction } from './combat.js';
 
-export { getScene, subst, SKILLS };
+export { getScene, subst, SKILLS, CHAPTERS };
 
 const LAYER = ['初', '二', '三', '四', '五', '六', '七', '八', '九'];
 const EXP_AT = [0, 24, 56, 100, 156, 224, 306, 402, 512];
@@ -59,23 +59,37 @@ export function freshStats() {
   return { hp: 40, maxHp: 40, mp: 18, maxMp: 18, atk: 8, def: 4, exp: 0, silver: 12, level: 1 };
 }
 
+export function chapterIndex(mission) {
+  const m = String(mission || '');
+  const n = /^c(\d+)$/.exec(m);
+  return n ? Number(n[1]) : 0;
+}
+
+export function nextOpenMission(state) {
+  const f = state.flags || {};
+  for (let i = 1; i <= 48; i += 1) {
+    if (!f['ch' + i + '_done']) return 'c' + i;
+  }
+  return 'errand';
+}
+
 export function newGame(gender, name) {
   const state = {
-    version: 2,
+    version: 3,
     gender: gender === 'female' ? 'female' : 'male',
     name: (name && String(name).trim()) || '無名',
     mode: 'story',
-    sceneId: 'intro',
+    sceneId: 'c1',
     paraIndex: 0,
     log: [],
     flags: {},
     stats: freshStats(),
-    learned: START_SKILLS.slice(),
-    loadout: START_SKILLS.slice(),
+    learned: [],
+    loadout: [],
     pills: 1,
     packedPill: false,
     day: 1,
-    mission: 'panku',
+    mission: 'c1',
     battle: null,
     settle: null,
     cultivatedToday: 0,
@@ -87,43 +101,17 @@ export function newGame(gender, name) {
 
 export function restoreState(data) {
   if (!data || !data.stats) return null;
+  if ((data.version || 0) < 3) return null;
   const flags = data.flags || {};
-  let mission = data.mission || 'panku';
-  let day = data.day || 1;
-  if (mission === 'done') {
-    const swept = flags.sweep_done || flags.won_wang || flags.lost_wang || flags.yield_wang;
-    if (flags.act1_done || flags.ajar_done) {
-      mission = 'errand';
-    } else if (flags.sleeve_done) {
-      mission = 'ajar';
-    } else if (flags.chain_done) {
-      mission = 'sleeve';
-    } else if (flags.credit_done) {
-      mission = 'chain';
-    } else if (flags.jian_done) {
-      mission = 'credit';
-    } else if (flags.shoes_done) {
-      mission = 'jian';
-    } else if (flags.sidemen_done) {
-      mission = 'shoes';
-    } else if (swept) {
-      mission = 'sidemen';
-      if (day < 3) day = 3;
-    } else if (day >= 2 || flags.day1_done) {
-      mission = 'sweep';
-    } else {
-      mission = 'panku';
-    }
-  }
-  if (mission === 'errand' && !flags.shoes_done && !flags.act1_done) {
-    mission = 'shoes';
-  }
+  let mission = data.mission || 'c1';
+  const day = data.day || 1;
+  if (!mission || mission === 'done') mission = nextOpenMission({ flags });
   return {
-    version: 2,
+    version: 3,
     gender: data.gender === 'female' ? 'female' : 'male',
     name: data.name || '無名',
     mode: data.mode || 'hub',
-    sceneId: data.sceneId || 'intro',
+    sceneId: data.sceneId || 'c1',
     paraIndex: data.paraIndex || 0,
     log: Array.isArray(data.log) ? data.log : [],
     flags,
@@ -132,8 +120,8 @@ export function restoreState(data) {
       if (!stats.level) stats.level = levelFromExp(stats.exp || 0).level;
       return stats;
     })(),
-    learned: data.learned || START_SKILLS.slice(),
-    loadout: data.loadout || START_SKILLS.slice(),
+    learned: Array.isArray(data.learned) ? data.learned.slice() : [],
+    loadout: Array.isArray(data.loadout) ? data.loadout.slice() : [],
     pills: data.pills ?? 1,
     packedPill: Boolean(data.packedPill),
     day,
@@ -155,17 +143,37 @@ function applyEffects(state, effects) {
   if (!effects) return state;
   const stats = { ...state.stats };
   const flags = { ...state.flags };
+  if (effects.maxHp) {
+    stats.maxHp += effects.maxHp;
+    if (effects.maxHp > 0) stats.hp = Math.min(stats.maxHp, stats.hp + effects.maxHp);
+  }
+  if (effects.maxMp) {
+    stats.maxMp += effects.maxMp;
+    if (effects.maxMp > 0) stats.mp = Math.min(stats.maxMp, stats.mp + effects.maxMp);
+  }
   if (effects.silver) stats.silver = Math.max(0, stats.silver + effects.silver);
   if (effects.hp) stats.hp = Math.max(1, Math.min(stats.maxHp, stats.hp + effects.hp));
   if (effects.mp) stats.mp = Math.max(0, Math.min(stats.maxMp, stats.mp + effects.mp));
+  if (effects.atk) stats.atk += effects.atk;
+  if (effects.def) stats.def += effects.def;
   if (effects.demerit) flags.demerit = (flags.demerit || 0) + effects.demerit;
-  return { ...state, stats, flags };
+  let next = { ...state, stats, flags };
+  if (effects.exp) {
+    const gained = applyGainExp(next.stats, effects.exp);
+    next = { ...next, stats: gained.stats };
+  }
+  return next;
 }
 
 function maybeUnlock(state) {
   let learned = state.learned.slice();
   const flags = { ...state.flags };
   const log = state.log.slice();
+  if (flags.unlock_listen && !learned.includes('listen')) {
+    learned.push('listen');
+    log.push({ kind: 'sys', text: '領悟功法：聽壁息。牆那邊息長的是巡夜，息短的是怕。' });
+    flags.unlock_listen = 0;
+  }
   if (flags.unlock_sweep && !learned.includes('sweep')) {
     learned.push('sweep');
     log.push({ kind: 'sys', text: '領悟功法：掃地掃勢。掃帚橫掃的路數，成了招。' });
@@ -182,6 +190,24 @@ function maybeUnlock(state) {
     flags.unlock_merit = 0;
   }
   return { ...state, learned, flags, log: trimLog(log) };
+}
+
+function grantTempleSkills(state) {
+  let learned = state.learned.slice();
+  let loadout = state.loadout.slice();
+  const log = state.log.slice();
+  let added = false;
+  for (const id of START_SKILLS) {
+    if (!learned.includes(id)) {
+      learned.push(id);
+      added = true;
+    }
+  }
+  if (!loadout.length) loadout = START_SKILLS.slice();
+  if (added) {
+    log.push({ kind: 'sys', text: '外門晨課把兩門拙功夫塞進你骨頭裡：青衡樁、搬箱勁。' });
+  }
+  return { ...state, learned, loadout, log: trimLog(log) };
 }
 
 function awaitingOf(scene) {
@@ -230,6 +256,8 @@ export function continueStory(state) {
   if (state.awaiting === 'more') return revealPara(state);
   if (state.awaiting === 'next') {
     const scene = getScene(state.sceneId, state);
+    if (scene?.next === '__hub_done__') return finishMission(state);
+    if (scene?.next === '__hub__') return toHub(state);
     if (scene?.next) return enterScene(state, scene.next);
   }
   if (state.awaiting === 'battle_ready') return beginBattle(state);
@@ -245,18 +273,20 @@ export function pickChoice(state, index) {
   const said = subst(choice.text, next);
   next.log = trimLog([...next.log, { kind: 'choice', text: '你：' + said }]);
   const to = choice.to;
-  if (to === '__hub__') return toHub(next, { day: next.day || 1, mission: next.mission || 'panku' });
-  if (to === '__hub_day2__') return toHub(next, { day: 2, mission: 'sweep', cultivatedToday: 0 });
-  if (to === '__hub_sidemen__') return toHub(next, { day: Math.max(3, (next.day || 1) + 1), mission: 'sidemen', cultivatedToday: 0 });
-  if (to === '__hub_shoes__') return toHub(next, { day: (next.day || 1) + 1, mission: 'shoes', cultivatedToday: 0 });
-  if (to === '__hub_jian__') return toHub(next, { day: (next.day || 1) + 1, mission: 'jian', cultivatedToday: 0 });
-  if (to === '__hub_credit__') return toHub(next, { day: (next.day || 1) + 1, mission: 'credit', cultivatedToday: 0 });
-  if (to === '__hub_chain__') return toHub(next, { day: (next.day || 1) + 1, mission: 'chain', cultivatedToday: 0 });
-  if (to === '__hub_sleeve__') return toHub(next, { day: (next.day || 1) + 1, mission: 'sleeve', cultivatedToday: 0 });
-  if (to === '__hub_ajar__') return toHub(next, { day: (next.day || 1) + 1, mission: 'ajar', cultivatedToday: 0 });
-  if (to === '__hub_errand__') return toHub(next, { day: (next.day || 1) + 1, mission: 'errand', cultivatedToday: 0 });
-  if (to === '__hub_done__') return toHub(next, { day: (next.day || 1) + 1, mission: nextOpenMission(next), cultivatedToday: 0 });
+  if (to === '__hub__') return toHub(next);
+  if (to === '__hub_done__') return finishMission(next);
   return enterScene(next, to);
+}
+
+function finishMission(state) {
+  const n = chapterIndex(state.mission);
+  const flags = { ...state.flags };
+  if (n >= 1 && n <= 48) flags['ch' + n + '_done'] = 1;
+  if (n === 48) flags.tale_done = 1;
+  let next = { ...state, flags };
+  if (n === 6) next = grantTempleSkills(next);
+  const mission = nextOpenMission(next);
+  return toHub(next, { day: (next.day || 1) + 1, mission, cultivatedToday: 0 });
 }
 
 function toHub(state, extra = {}) {
@@ -293,7 +323,7 @@ export function openCultivate(state) {
 export function confirmPrep(state, loadout, packedPill) {
   const ids = (loadout || []).filter((id) => state.learned.includes(id)).slice(0, 3);
   if (!ids.length) {
-    return { ...state, notice: '至少裝備一門功法。盤庫不是掃地，空手要記過。' };
+    return { ...state, notice: '至少裝備一門功法。空手出列，先記過。' };
   }
   const pack = Boolean(packedPill) && state.pills > 0;
   return toHub({ ...state, loadout: ids, packedPill: pack }, { notice: pack ? '已備功法與止血散。' : '已備功法。' });
@@ -344,32 +374,11 @@ export function buyPill(state) {
   };
 }
 
-function nextOpenMission(state) {
-  const f = state.flags || {};
-  if (!f.day1_done) return 'panku';
-  if (!f.sweep_done && !f.won_wang && !f.lost_wang && !f.yield_wang) return 'sweep';
-  if (!f.sidemen_done) return 'sidemen';
-  if (!f.shoes_done) return 'shoes';
-  if (!f.jian_done) return 'jian';
-  if (!f.credit_done) return 'credit';
-  if (!f.chain_done) return 'chain';
-  if (!f.sleeve_done) return 'sleeve';
-  if (!f.ajar_done) return 'ajar';
-  return 'errand';
+function missionNeedsLoadout(mission) {
+  const ch = CHAPTERS.find((c) => c.id === mission);
+  if (ch) return !ch.skipPrep;
+  return true;
 }
-
-const MISSION_SCENE = {
-  panku: 'panku',
-  sweep: 'sweep',
-  sidemen: 'sidemen',
-  shoes: 'shoes',
-  jian: 'jian',
-  credit: 'credit',
-  chain: 'chain',
-  sleeve: 'sleeve',
-  ajar: 'ajar',
-  errand: 'errand',
-};
 
 export function startMission(state) {
   let mission = state.mission;
@@ -377,13 +386,13 @@ export function startMission(state) {
     mission = nextOpenMission(state);
     state = { ...state, mission };
   }
-  if (!state.loadout.length) {
+  const n = chapterIndex(mission);
+  if (n >= 7) state = grantTempleSkills(state);
+  if (missionNeedsLoadout(mission) && !state.loadout.length) {
     return { ...state, notice: '先裝備功法。點名未起，空手出列，先記過。' };
   }
-  const sceneId = MISSION_SCENE[mission];
-  if (sceneId) return enterScene(state, sceneId);
-  const fallback = nextOpenMission(state);
-  return enterScene({ ...state, mission: fallback }, MISSION_SCENE[fallback] || 'errand');
+  const sceneId = mission === 'errand' ? 'errand' : mission;
+  return enterScene({ ...state, log: [] }, sceneId);
 }
 
 export function beginBattle(state) {
@@ -424,9 +433,7 @@ function finishBattle(state, result) {
   const gain = result === 'win' ? 12 : 4;
   const gained = applyGainExp(stats, gain);
   Object.assign(stats, gained.stats);
-  if (result === 'win') {
-    flags.fame = (flags.fame || 0) + 0;
-  } else {
+  if (result !== 'win') {
     stats.hp = 1;
     flags.demerit = (flags.demerit || 0) + 1;
   }
@@ -457,15 +464,10 @@ export function continueSettle(state) {
 }
 
 export function missionLabel(state) {
-  if (state.mission === 'panku') return '盤庫';
-  if (state.mission === 'sweep') return '掃外庭';
-  if (state.mission === 'sidemen') return '掃側門銀杏';
-  if (state.mission === 'shoes') return '井邊差事';
-  if (state.mission === 'jian') return '秋薦文書';
-  if (state.mission === 'credit') return '下山記功';
-  if (state.mission === 'chain') return '成串';
-  if (state.mission === 'sleeve') return '袖中那頁';
-  if (state.mission === 'ajar') return '虛掩';
-  if (state.mission === 'errand') return '外門雜差';
+  if (state.mission === 'errand' || (state.flags && state.flags.tale_done && chapterIndex(state.mission) === 0)) {
+    return '外門雜差';
+  }
+  const ch = CHAPTERS.find((c) => c.id === state.mission);
+  if (ch) return '第' + ch.n + '章：' + ch.title;
   return '外門雜差';
 }

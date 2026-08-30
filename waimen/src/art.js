@@ -38,7 +38,7 @@ export function artFor(mode, sceneId, scene) {
   } else if (/shoes|xiao|小滿/.test(blob)) {
     portrait = 'xiaoman';
     portraitName = '小滿';
-  } else if (/he_|find_he|阿禾|intro/.test(blob)) {
+  } else if (/(^|\s)intro(\s|$)|intro_ask|intro_blind|intro_hush|intro_eat|intro_drill|intro_lie|find_he|阿禾/.test(blob)) {
     portrait = 'ahe';
     portraitName = '阿禾';
   }
@@ -48,7 +48,7 @@ export function artFor(mode, sceneId, scene) {
 export function metFaces(flags) {
   const f = flags || {};
   const out = [];
-  if (f.he_confides || f.he_bond || f.he_grudge || f.he_fear || f.he_saved || f.he_to_cart || f.willful_blind || f.he_distance) {
+  if (f.he_confides || f.he_bond || f.he_grudge || f.he_fear || f.he_saved || f.he_to_cart || f.willful_blind || f.he_distance || f.breakfast || f.keen || f.lazy) {
     out.push(['ahe', '阿禾']);
   }
   if (f.xie_hold || f.xie_line || f.xie_greet || f.xie_rope || f.xie_eye || f.xie_cover || f.wait_xie) {

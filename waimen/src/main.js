@@ -82,14 +82,15 @@ function bar(cur, max, cls) {
   return `<div class="bar ${cls}"><i style="width:${pct}%"></i></div>`;
 }
 
-function still(bgKey, loc, portraitKey, portraitName) {
+function still(bgKey, loc, portraitKey, portraitName, extraHtml) {
   const src = BACKGROUNDS[bgKey];
   const who = portraitKey && PORTRAITS[portraitKey]
     ? `<img class="stage-who" src="${PORTRAITS[portraitKey]}" alt="${escapeHtml(portraitName || '')}">`
     : '';
   const label = [loc, portraitName].filter(Boolean).join(' · ');
-  if (!src) return `<div class="stage"><div class="loc">${escapeHtml(label)}</div></div>`;
-  return `<div class="stage"><div class="still"><img src="${src}" alt="">${who}<div class="still-loc">${escapeHtml(label)}</div></div></div>`;
+  const locEl = extraHtml ? '' : `<div class="still-loc">${escapeHtml(label)}</div>`;
+  if (!src) return `<div class="stage"><div class="loc">${escapeHtml(label)}</div>${extraHtml || ''}</div>`;
+  return `<div class="stage"><div class="still"><img src="${src}" alt="">${who}${locEl}${extraHtml || ''}</div></div>`;
 }
 
 function faceRow(flags) {
@@ -295,7 +296,9 @@ function renderHub() {
         <span>攻 ${state.stats.atk}　防 ${state.stats.def}</span>
         <span>已習 ${state.learned.length} 門</span>
       </div>
-      <p>雜役院。通鋪潮，土階乾。功法冊在枕下，丹藥在袖。門規把日子一寸寸削下去，削得合法。</p>
+      <p>${f.day1_done
+        ? '雜役院。通鋪潮，土階乾。功法冊在枕下，丹藥在袖。門規把日子一寸寸削下去，削得合法。'
+        : '外門晨課。饅頭還有餘溫。銀杏葉金黃，有人把掃帚當槍使。午後才盤庫——阿禾說先把樁站住，別一進門就想內門的事。'}</p>
       <p class="journal">${notes.map(escapeHtml).join('<br>')}</p>
       <p class="muted">已習：${escapeHtml(learned || '無')}</p>
       ${cultHint}
@@ -375,22 +378,21 @@ function renderBattle() {
   const art = artFor('battle', state.sceneId, scene);
   const intent = b.sensing > 0 ? `<p class="intent">${escapeHtml(describeIntent(b))}</p>` : '';
   const blog = b.log.map((t) => `<p class="log-battle">${escapeHtml(t)}</p>`).join('');
-  return `
-    ${still(art.bg, '衝突', art.portrait, art.portraitName)}
-    <div class="fight-strip">
-      <div class="fight">
-        <div class="side">
-          <div class="side-name">${escapeHtml(b.name)}</div>
-          ${bar(b.enemyHp, b.enemyMaxHp, 'hp')}
-          <b>${b.enemyHp}/${b.enemyMaxHp}</b>
-        </div>
-        <div class="side">
-          <div class="side-name">${escapeHtml(state.name)}</div>
-          ${bar(s.hp, s.maxHp, 'hp')}
-          <b>${s.hp}/${s.maxHp}</b>
-        </div>
+  const hud = `<div class="hud">
+      <div class="hud-side">
+        <div class="hud-name">${escapeHtml(b.name)}</div>
+        ${bar(b.enemyHp, b.enemyMaxHp, 'hp')}
+        <b>氣血 ${b.enemyHp}/${b.enemyMaxHp}</b>
       </div>
-    </div>
+      <div class="hud-side">
+        <div class="hud-name">${escapeHtml(state.name)}</div>
+        ${bar(s.hp, s.maxHp, 'hp')}
+        <b>氣血 ${s.hp}/${s.maxHp}</b>
+        <em>內力 ${s.mp}/${s.maxMp}</em>
+      </div>
+    </div>`;
+  return `
+    ${still(art.bg, '衝突', art.portrait, art.portraitName, hud)}
     <div class="pane log battle-log">${intent}${blog}</div>
   `;
 }

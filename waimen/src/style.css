@@ -154,6 +154,48 @@ button {
   border-top: 1px solid var(--gold-line);
   background: rgba(6, 12, 14, 0.88);
 }
+.hud {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 10px 12px 8px;
+  background: linear-gradient(transparent, rgba(7, 9, 10, 0.94) 35%);
+}
+.hud-side .bar { height: 12px; border-width: 1px; }
+.hud-name {
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.hud-side b, .hud-side em {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  color: var(--paper);
+  letter-spacing: 0.08em;
+}
+.hud-side em { color: var(--mp); }
+.shell[data-screen="battle"] .stage {
+  flex-basis: 38vh;
+  max-height: 300px;
+  min-height: 170px;
+}
+.shell[data-screen="battle"] .bot {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-height: 30dvh;
+}
+.shell[data-screen="battle"] .bot button {
+  min-height: 44px;
+}
 .loc {
   font-size: 12px;
   letter-spacing: 0.42em;
